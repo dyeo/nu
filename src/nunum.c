@@ -1,18 +1,18 @@
 #include "nu.h"
 #include <math.h>
 
-nu_num *nu_new_num(double v) 
+nu_num *nu_new_num(num_t v) 
 { 
     nu_num *o = malloc(sizeof(nu_num));
-    o->base.type = NU_NUM_T;
-    o->base.refs = 0u;
+    o->type = NU_NUM_T;
+    o->refs = 0u;
     o->value = v;
     return o;
 }
 
 NU_LOOKUP_FUNC(
-    to_double,
-    double,
+    to_num_t,
+    num_t,
     { return 0.0; },
     { return o->value;},
     { return o->value; },
@@ -23,15 +23,10 @@ NU_LOOKUP_FUNC(
     { return 0.0; }
 );
 
-double nu_to_double(nu_base *v) 
-{
-    return _nu_to_double_ptr[v->type](v);
-}
-
-long nu_to_long(nu_base *v)
-{
-    return (long)_nu_to_double_ptr[v->type](v);
-}
+double nu_to_double(nu_base *v) { return (double)_nu_to_num_t_ptr[v->type](v); }
+long nu_to_long(nu_base *v) { return (long)_nu_to_num_t_ptr[v->type](v); }
+float nu_to_float(nu_base *v) { return (float)_nu_to_num_t_ptr[v->type](v); }
+int nu_to_int(nu_base *v) { return (int)_nu_to_num_t_ptr[v->type](v); }
 
 NU_LOOKUP_FUNC2(
     add,

@@ -1,5 +1,6 @@
 add_executable(
     nutest 
+    tests.h
     tests.c
 )
 

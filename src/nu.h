@@ -5,15 +5,21 @@
 extern "C" {
 #endif
 
-#if _WIN64 || _LP64 || __LP64__ || __amd64__ || __amd64 || __x86_64__ || __x86_64 || _M_AMD_64 || __aarch64__
-#define NU_64_BIT
-#else
-#define NU_32_BIT
-#endif
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+#if _WIN64 || _LP64 || __LP64__ || __amd64__ || __amd64 || __x86_64__ || __x86_64 || _M_AMD_64 || __aarch64__
+#define NU_64_BIT
+#define NU_BASE_TYPE_BITS 3
+#define NU_BASE_REFS_BITS 61
+typedef double num_t;
+#else
+#define NU_32_BIT
+#define NU_BASE_TYPE_BITS 3
+#define NU_BASE_REFS_BITS 29
+typedef float num_t;
+#endif
 
 #define NU_NONE_T   0
 #define NU_BOOL_T   1
@@ -46,41 +52,34 @@ extern "C" {
     rett _nu_thr_##name (nu_base *l, nu_base *r) thrf \
     rett (*_nu_##name##_ptr[8]) (nu_base *l, nu_base *r) = { _nu_none_##name, _nu_bool_##name, _nu_num_##name, _nu_str_##name, _nu_fn_##name, _nu_arr_##name, _nu_obj_##name, _nu_thr_##name }
 
+#define NU_BASE_HEADER() \
+    size_t type : NU_BASE_TYPE_BITS; \
+    size_t refs : NU_BASE_REFS_BITS;
+
 typedef struct nu_base {
-    size_t type : 3;
-    #ifdef NU_64_BIT
-    size_t refs : 61;
-    #elif defined(NU_32_BIT)
-    size_t refs : 29;
-    #elif defined(NU_16_BIT)
-    size_t refs : 13;
-    #elif defined(NU_8_BIT)
-    size_t refs : 5;
-    #else
-    #error CPU architecture bit-width not supported.
-    #endif
+    NU_BASE_HEADER()
 } nu_base;
 
 typedef struct nu_bool {
-    nu_base base;
+    NU_BASE_HEADER()
     bool value;
 } nu_bool;
 
 typedef struct nu_num {
-    nu_base base;
-    double value;
+    NU_BASE_HEADER()
+    num_t value;
 } nu_num;
 
 /**
  * Constants
  */
 
-
 const extern nu_base nu_none;
 const extern nu_bool nu_true;
 const extern nu_bool nu_false;
 const extern nu_num nu_zero;
 const extern nu_num nu_one;
+
 
 /**
  * Initialization, Finalization, & Interpreter State
@@ -89,6 +88,7 @@ const extern nu_num nu_one;
 
 bool nu_initialize();
 bool nu_finalize();
+
 
 /**
  * Generic Object Methods
@@ -106,15 +106,18 @@ nu_bool *nu_new_bool(bool v);
 
 bool nu_to_bool(nu_base *o);
 
+
 /**
  * Number Methods
  * nunum.c
  */
 
-nu_num *nu_new_num(double v);
+nu_num *nu_new_num(num_t v);
 
 double nu_to_double(nu_base *v);
 long nu_to_long(nu_base *v);
+float nu_to_float(nu_base *v);
+int nu_to_int(nu_base *v);
 
 nu_base *nu_add(nu_base *l, nu_base *r);
 nu_base *nu_sub(nu_base *l, nu_base *r);

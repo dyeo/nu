@@ -3,8 +3,8 @@
 nu_bool *nu_new_bool(bool v)
 {
     nu_bool *o = malloc(sizeof(nu_bool));
-    o->base.type = NU_BOOL_T;
-    o->base.refs = 0u;
+    o->type = NU_BOOL_T;
+    o->refs = 0u;
     o->value = v;
     return o;
 }
