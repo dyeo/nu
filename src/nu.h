@@ -56,7 +56,11 @@ typedef struct nu_num {
  * Function Pointer Definition
  */
 
-typedef nu_base* (*nu_op_t)(nu_base*, nu_base*);
+#define NU_OP_DEF(name, ret, ...) typedef ret (*name)(__VA_ARGS__)
+
+#define NU_FPTR(ret, ...) ret (*)(__VA_ARGS__)
+
+NU_OP_DEF(nu_oper_t, nu_base *, nu_base *, nu_base *);
 
 /**
  * Constants
