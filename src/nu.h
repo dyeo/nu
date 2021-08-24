@@ -30,31 +30,13 @@ typedef float num_t;
 #define NU_OBJ_T    6
 #define NU_THR_T    7
 
-#define NU_LOOKUP_FUNC(name, rett, nonef, boolf, numf, strf, fnf, arrf, objf, thrf) \
-    rett _nu_none_##name (nu_base *o) nonef \
-    rett _nu_bool_##name (nu_bool *o) boolf \
-    rett _nu_num_##name (nu_num *o) numf \
-    rett _nu_str_##name (nu_base *o) strf \
-    rett _nu_fn_##name (nu_base *o) fnf \
-    rett _nu_arr_##name (nu_base *o) arrf \
-    rett _nu_obj_##name (nu_base *o) objf \
-    rett _nu_thr_##name (nu_base *o) thrf \
-    rett (*_nu_##name##_ptr[8]) (nu_base *o) = { _nu_none_##name, _nu_bool_##name, _nu_num_##name, _nu_str_##name, _nu_fn_##name, _nu_arr_##name, _nu_obj_##name, _nu_thr_##name }
-
-#define NU_LOOKUP_FUNC2(name, rett, nonef, boolf, numf, strf, fnf, arrf, objf, thrf) \
-    rett _nu_none_##name (nu_base *l, nu_base *r) nonef \
-    rett _nu_bool_##name (nu_bool *l, nu_bool *r) boolf \
-    rett _nu_num_##name (nu_num *l, nu_num *r) numf \
-    rett _nu_str_##name (nu_base *l, nu_base *r) strf \
-    rett _nu_fn_##name (nu_base *l, nu_base *r) fnf \
-    rett _nu_arr_##name (nu_base *l, nu_base *r) arrf \
-    rett _nu_obj_##name (nu_base *l, nu_base *r) objf \
-    rett _nu_thr_##name (nu_base *l, nu_base *r) thrf \
-    rett (*_nu_##name##_ptr[8]) (nu_base *l, nu_base *r) = { _nu_none_##name, _nu_bool_##name, _nu_num_##name, _nu_str_##name, _nu_fn_##name, _nu_arr_##name, _nu_obj_##name, _nu_thr_##name }
-
 #define NU_BASE_HEADER() \
     size_t type : NU_BASE_TYPE_BITS; \
     size_t refs : NU_BASE_REFS_BITS;
+
+/**
+ * Object Definitions
+ */
 
 typedef struct nu_base {
     NU_BASE_HEADER()
@@ -69,6 +51,12 @@ typedef struct nu_num {
     NU_BASE_HEADER()
     num_t value;
 } nu_num;
+
+/**
+ * Function Pointer Definition
+ */
+
+typedef nu_base* (*nu_op_t)(nu_base*, nu_base*);
 
 /**
  * Constants
@@ -95,6 +83,12 @@ bool nu_finalize();
  * nuobject.c
  */
 
+nu_base *nu_lt(nu_base *l, nu_base *r);
+nu_base *nu_le(nu_base *l, nu_base *r);
+nu_base *nu_eq(nu_base *l, nu_base *r);
+nu_base *nu_ne(nu_base *l, nu_base *r);
+nu_base *nu_ge(nu_base *l, nu_base *r);
+nu_base *nu_gt(nu_base *l, nu_base *r);
 
 
 /**
