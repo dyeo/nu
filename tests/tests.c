@@ -1,17 +1,14 @@
 #include "tests.h"
-#include "../src/nu.h"
 #include "../src/nurbt.h"
 
-#include <assert.h>
 #include <stdio.h>
-
 
 int main(int argc, char **argv)
 {
-	rb_node *a = rb_new(0, NULL);
-	for (int i = 1; i < 24; ++i)
+	rb_tree *a = rb_new_tree();
+	for (int i = 0; i < 24; ++i)
 	{
-		rb_insert(&a, rb_new(i, NULL));
+		a = rb_insert(&a, rb_new_node(i, NULL));
 	}
 	//assert(rb_search(a, 50) != NIL);
 	rb_node *s = rb_search(&a, 23);

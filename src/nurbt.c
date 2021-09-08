@@ -1,256 +1,335 @@
 #include "nurbt.h"
 
+#include <stdlib.h>
 #include <assert.h>
 
-rb_node rb_nil = { &rb_nil, &rb_nil, &rb_nil, BLACK, 0, NULL };
+#define nil &rb_nil
+#define p(N) N->parent
+#define left(N) N->left
+#define right(N) N->right
+#define color(N) N->color
+#define key(N) N->key
+#define val(N) N->val
+#define root(N) N->root
 
-rb_node *rb_new(size_t hash, void *data)
+const rb_node rb_nil = { black, nil, nil, nil, 0ul, NULL };
+
+rb_node *rb_new_node(size_t key, void *val)
 {
 	rb_node *r = (rb_node *)malloc(sizeof(rb_node));
 	assert(r != NULL);
-	r->parent = RB_NIL;
-	r->left = RB_NIL;
-	r->right = RB_NIL;
-	r->color = RED;
-	r->hash = hash;
-	r->data = data;
+	r->parent = nil;
+	r->left = nil;
+	r->right = nil;
+	r->color = red;
+	r->key = key;
+	r->val = val;
 	return r;
 }
 
-rb_node *rb_search(rb_node **tree, size_t hash)
+rb_node *rb_min(rb_node *x)
 {
-	rb_node *x = *tree;
-	while (x != RB_NIL && x->hash != hash)
-		x = (x->hash < hash) ? x->left : x->right;
+	while (left(x) != nil)
+	{
+		x = left(x);
+	}
 	return x;
 }
 
-rb_node *rb_min(rb_node *node)
+rb_node *rb_max(rb_node *x)
 {
-	while (node->left != RB_NIL)
-		node = node->left;
-	return node;
-}
-
-rb_node *rb_max(rb_node *node)
-{
-	while (node->right != RB_NIL)
-		node = node->right;
-	return node;
-}
-
-rb_node *_rb_successor(rb_node *node)
-{
-	if (node->right != RB_NIL)
-		return rb_min(node->right);
-	rb_node *y = node->parent;
-	while (y != RB_NIL && node == y->right)
+	while (right(x) != nil)
 	{
-		node = y;
-		y = y->parent;
+		x = right(x);
+	}
+	return x;
+}
+
+rb_node *rb_search(rb_tree *t, size_t key)
+{
+	rb_node *curr = root(t);
+	while (curr != nil && key != key(curr))
+	{
+		curr = key < key(curr) ? left(curr) : right(curr);
+	}
+	return curr;
+}
+
+rb_node *rb_next(rb_node *x)
+{
+	if (right(x) != nil)
+	{
+		return rb_min(right(x));
+	}
+	rb_node *y = p(x);
+	while (y != nil && x == right(x))
+	{
+		x = y;
+		y = p(y);
 	}
 	return y;
 }
 
-void _rb_rotate_left(rb_node **root, rb_node *node)
+rb_node *rb_prev(rb_node *x)
 {
-	rb_node *y = node->right;
-	node->right = y->left;
-	if (y->left != RB_NIL)
-		y->left->parent = node;
-	y->parent = node->parent;
-	if (node->parent == RB_NIL)
-		*root = y;
-	else if (node == node->parent->left)
-		node->parent->left = y;
-	else
-		node->parent->right = y;
-	y->left = node;
-	node->parent = y;
+	if (left(x) != nil)
+	{
+		return rb_min(left(x));
+	}
+	rb_node *y = p(x);
+	while (y != nil && x == left(x))
+	{
+		x = y;
+		y = p(y);
+	}
+	return y;
 }
 
-void _rb_rotate_right(rb_node **root, rb_node *node)
+rb_tree *rb_new_tree()
 {
-	rb_node *y = node->left;
-	node->left = y->right;
-	if (y->right != RB_NIL)
-		y->right->parent = node;
-	y->parent = node->parent;
-	if (node->parent == RB_NIL)
-		*root = y;
-	else if (node == node->parent->left)
-		node->parent->left = y;
-	else
-		node->parent->right = y;
-	y->right = node;
-	node->parent = y;
+	rb_tree *r = (rb_tree *)malloc(sizeof(rb_tree));
+	assert(r != NULL);
+	r->root = nil;
+	return r;
 }
 
-void rb_insert(rb_node **root, rb_node *node)
+void rb_left_rotate(rb_tree *t, rb_node *x)
 {
-	rb_node *y = RB_NIL;
-	rb_node *x = *root;
-	while (x != RB_NIL)
+	rb_node *y = right(x);
+	right(x) = left(y);
+	if (left(y) != nil)
+	{
+		p(left(y)) = x;
+	}
+	p(y) = p(x);
+	if (p(x) == nil)
+	{
+		root(t) = y;
+	}
+	else if (x == left(p(x)))
+	{
+		left(p(x)) = y;
+	}
+	else
+	{
+		right(p(x)) = y;
+	}
+	left(y) = x;
+	p(x) = y;
+}
+
+void rb_right_rotate(rb_tree *t, rb_node *x)
+{
+	rb_node *y = left(x);
+	left(x) = right(y);
+	if (right(y) != nil)
+	{
+		p(right(y)) = x;
+	}
+	p(y) = p(x);
+	if (p(x) == nil)
+	{
+		root(t) = y;
+	}
+	else if (x == right(p(x)))
+	{
+		right(p(x)) = y;
+	}
+	else
+	{
+		left(p(x)) = y;
+	}
+	right(y) = x;
+	p(x) = y;
+}
+
+rb_node *rb_insert(rb_tree *t, rb_node *z)
+{
+	rb_node *y = nil;
+	rb_node *x = root(t);
+	while (x != nil)
 	{
 		y = x;
-		x = (node->hash < x->hash) ? x->left : x->right;
+		x = (key(z) < key(x)) ? left(x) : right(x);
 	}
-	node->parent = y;
-	if (y == RB_NIL)
-		*root = node;
-	else if (node->hash < y->hash)
-		y->left = node;
-	else
-		y->right = node;
-	node->left = RB_NIL;
-	node->right = RB_NIL;
-	node->color = RED;
-	while (node->parent->color == RED)
+	p(z) = y;
+	if (y == nil)
 	{
-		rb_node *y;
-		if (node->parent == node->parent->parent->left)
+		root(t) = z;
+	}
+	else if (key(z) < key(y))
+	{
+		left(y) = z;
+	}
+	else
+	{
+		right(y) = z;
+	}
+	color(x) = red;
+	while (x != root(t) && color(p(x)) == red)
+	{
+		if (p(x) == left(p(p(x))))
 		{
-			y = node->parent->parent->right;
-			if (y->color == RED)
+			y = right(p(p(x)));
+			if (color(y) == red)
 			{
-				node->parent->color = BLACK;
-				y->color = BLACK;
-				node->parent->parent->color = RED;
-				node = node->parent->parent;
+				color(p(x)) = black;
+				color(y) = black;
+				color(p(p(x))) = red;
+				x = p(p(x));
 			}
 			else
 			{
-				if (node == node->parent->right)
+				if (x == right(p(x)))
 				{
-					node = node->parent;
-					_rb_rotate_left(root, node);
+					x = p(x);
+					rb_left_rotate(t, x);
 				}
-				node->parent->color = BLACK;
-				node->parent->parent->color = RED;
-				_rb_rotate_right(root, node->parent->parent);
+				color(p(x)) = black;
+				color(p(p(x))) = red;
+				rb_right_rotate(t, p(p(x)));
 			}
 		}
-		else if (node->parent == node->parent->parent->right)
+		else
 		{
-			y = node->parent->parent->left;
-			if (y->color == RED)
+			y = left(p(p(x)));
+			if (color(y) == red)
 			{
-				node->parent->color = BLACK;
-				y->color = BLACK;
-				node->parent->parent->color = RED;
-				node = node->parent->parent;
+				color(p(x)) = black;
+				color(y) = black;
+				color(p(p(x))) = red;
+				x = p(p(x));
 			}
 			else
 			{
-				if (node == node->parent->left)
+				if (x == left(p(x)))
 				{
-					node = node->parent;
-					_rb_rotate_right(root, node);
+					x = p(x);
+					rb_right_rotate(t, x);
 				}
-				node->parent->color = BLACK;
-				node->parent->parent->color = RED;
-				_rb_rotate_left(root, node->parent->parent);
+				color(p(x)) = black;
+				color(p(p(x))) = red;
+				rb_left_rotate(t, p(p(x)));
 			}
 		}
 	}
-	(*root)->color = BLACK;
+	color(root(t)) = black;
+	return root(t);
 }
 
-rb_node *rb_delete(rb_node **root, rb_node *node)
+rb_node *rb_delete(rb_tree *t, rb_node *z)
 {
-	rb_node *y, *x;
-	if (node->left == RB_NIL || node->right == RB_NIL)
-		y = node;
-	else
-		y = _rb_successor(node);
-	if (y->left != RB_NIL)
-		x = y->left;
-	else
-		x = y->right;
-	x->parent = y->parent;
-	if (y->parent == RB_NIL)
-		*root = x;
-	else if (y == y->parent->left)
-		y->parent->left = x;
-	else
-		y->parent->right = x;
-	if (y == node)
+	rb_node *x; rb_node *y;
+	if (left(z) == nil || right(z) == nil)
 	{
-		node->hash = y->hash;
-		node->data = y->data;
+		y = z;
 	}
-	if (y->color == BLACK)
+	else
 	{
-		// fixup
-		while (x != *root && x->color == BLACK)
+		y = rb_next(z);
+	}
+	if (left(y) != nil)
+	{
+		x = left(y);
+	}
+	else
+	{
+		x = right(y);
+	}
+	p(x) = p(y);
+	if (p(y) == nil)
+	{
+		root(t) = x;
+	}
+	else if (y == left(p(y)))
+	{
+		left(p(y)) = x;
+	}
+	else
+	{
+		right(p(y)) = x;
+	}
+	if (y != z)
+	{
+		key(z) = key(y);
+		val(z) = val(y);
+	}
+	if (color(y) == black)
+	{
+		rb_node *w;
+		while (x != root(t) && color(x) == black)
 		{
-			rb_node *w;
-			if (x == x->parent->left)
+			if (x == left(p(x)))
 			{
-				w = x->parent->right;
-				if (w->color == RED)
+				w = right(p(x));
+				if (color(w) == red)
 				{
-					w->color = BLACK;
-					x->parent->color = RED;
-					_rb_rotate_left(root, x->parent);
-					w = x->parent->right;
+					color(w) = black;
+					color(p(x)) = red;
+					rb_left_rotate(t, p(x));
+					w = right(p(x));
 				}
-				if (w->left->color == BLACK && w->right->color == BLACK)
+				if (color(left(w)) == black && color(right(w)) == black)
 				{
-					w->color = RED;
-					x = x->parent;
-					x->parent = node->parent->parent;
+					color(w) = red;
+					x = p(x);
 				}
 				else
 				{
-					if (w->right->color == BLACK)
+					if (color(right(w)) == black)
 					{
-						w->left->color = BLACK;
-						w->color = RED;
-						_rb_rotate_right(root, w);
-						w = x->parent->right;
+						color(left(w)) = black;
+						color(w) = red;
+						rb_right_rotate(t, w);
+						w = right(p(x));
 					}
-					w->color = x->parent->color;
-					x->parent->color = BLACK;
-					w->right->color = BLACK;
-					_rb_rotate_left(root, x->parent);
-					x = *root;
+					color(w) = color(p(x));
+					color(p(x)) = black;
+					color(right(w)) = black;
+					rb_left_rotate(t, p(x));
+					x = root(t);
 				}
 			}
 			else
 			{
-				w = x->parent->left;
-				if (w->color == RED)
+				w = left(p(x));
+				if (color(w) == red)
 				{
-					w->color = BLACK;
-					x->parent->color = RED;
-					_rb_rotate_right(root, x->parent);
-					w = x->parent->left;
+					color(w) = black;
+					color(p(x)) = red;
+					rb_right_rotate(t, p(x));
+					w = left(p(x));
 				}
-				if (w->right->color == BLACK && w->left->color == BLACK)
+				if (color(right(w)) == black && color(left(w)) == black)
 				{
-					w->color = RED;
-					x = x->parent;
-					x->parent = node->parent->parent;
+					color(w) = red;
+					x = p(x);
 				}
 				else
 				{
-					if (w->left->color == BLACK)
+					if (color(left(w)) == black)
 					{
-						w->right->color = BLACK;
-						w->color = RED;
-						_rb_rotate_left(root, w);
-						w = x->parent->left;
+						color(right(w)) = black;
+						color(w) = red;
+						rb_left_rotate(t, w);
+						w = left(p(x));
 					}
-					w->color = x->parent->color;
-					x->parent->color = BLACK;
-					w->left->color = BLACK;
-					_rb_rotate_right(root, x->parent);
-					x = *root;
+					color(w) = color(p(x));
+					color(p(x)) = black;
+					color(left(w)) = black;
+					rb_right_rotate(t, p(x));
+					x = root(t);
 				}
 			}
 		}
-		x->color = BLACK;
 	}
 	return y;
 }
+
+#undef nil
+#undef p(N)
+#undef left(N)
+#undef right(N)
+#undef color(N)
+#undef key(N)
+#undef val(N)
