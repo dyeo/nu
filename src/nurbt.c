@@ -62,7 +62,7 @@ rb_node *rb_next(rb_node *x)
 		return rb_min(right(x));
 	}
 	rb_node *y = p(x);
-	while (y != nil && x == right(x))
+	while (y != nil && x == right(y))
 	{
 		x = y;
 		y = p(y);
@@ -74,10 +74,10 @@ rb_node *rb_prev(rb_node *x)
 {
 	if (left(x) != nil)
 	{
-		return rb_min(left(x));
+		return rb_max(left(x));
 	}
 	rb_node *y = p(x);
-	while (y != nil && x == left(x))
+	while (y != nil && x == left(y))
 	{
 		x = y;
 		y = p(y);
@@ -93,15 +93,28 @@ rb_tree *rb_new_tree()
 	return r;
 }
 
+void rb_traverse(rb_tree *tree, rb_traverse_fptr func)
+{
+	rb_node *curr = rb_min(tree->root);
+	do
+	{
+		func(curr);
+	} while ((curr = rb_next(curr)) != &rb_nil);
+}
+
 void rb_left_rotate(rb_tree *t, rb_node *x)
 {
-	rb_node *y = right(x);
-	right(x) = left(y);
+	if (right(x) == nil)
+	{
+		return;
+	}
+	rb_node *y = right(x); // set y
+	right(x) = left(y); // turn y's left subtree into x's right subtree
 	if (left(y) != nil)
 	{
 		p(left(y)) = x;
 	}
-	p(y) = p(x);
+	p(y) = p(x); // link x's parent to y
 	if (p(x) == nil)
 	{
 		root(t) = y;
@@ -114,19 +127,23 @@ void rb_left_rotate(rb_tree *t, rb_node *x)
 	{
 		right(p(x)) = y;
 	}
-	left(y) = x;
+	left(y) = x; // put x on y's left
 	p(x) = y;
 }
 
 void rb_right_rotate(rb_tree *t, rb_node *x)
 {
-	rb_node *y = left(x);
-	left(x) = right(y);
+	if (right(x) == nil)
+	{
+		return;
+	}
+	rb_node *y = left(x); // set y
+	left(x) = right(y); // turn y's right subtree into x's left subtree
 	if (right(y) != nil)
 	{
 		p(right(y)) = x;
 	}
-	p(y) = p(x);
+	p(y) = p(x); // link x's parent to y
 	if (p(x) == nil)
 	{
 		root(t) = y;
@@ -139,18 +156,25 @@ void rb_right_rotate(rb_tree *t, rb_node *x)
 	{
 		left(p(x)) = y;
 	}
-	right(y) = x;
+	right(y) = x; // put x on y's right
 	p(x) = y;
 }
 
-rb_node *rb_insert(rb_tree *t, rb_node *z)
+void rb_insert(rb_tree *t, rb_node *z)
 {
 	rb_node *y = nil;
 	rb_node *x = root(t);
 	while (x != nil)
 	{
 		y = x;
-		x = (key(z) < key(x)) ? left(x) : right(x);
+		if (key(z) < key(x))
+		{
+			x = left(x);
+		}
+		else
+		{
+			x = right(x);
+		}
 	}
 	p(z) = y;
 	if (y == nil)
@@ -165,7 +189,11 @@ rb_node *rb_insert(rb_tree *t, rb_node *z)
 	{
 		right(y) = z;
 	}
-	color(x) = red;
+	if (x != nil)
+	{
+		color(x) = red;
+	}
+
 	while (x != root(t) && color(p(x)) == red)
 	{
 		if (p(x) == left(p(p(x))))
@@ -214,7 +242,6 @@ rb_node *rb_insert(rb_tree *t, rb_node *z)
 		}
 	}
 	color(root(t)) = black;
-	return root(t);
 }
 
 rb_node *rb_delete(rb_tree *t, rb_node *z)
@@ -236,7 +263,10 @@ rb_node *rb_delete(rb_tree *t, rb_node *z)
 	{
 		x = right(y);
 	}
-	p(x) = p(y);
+	if (p(x) != nil)
+	{
+		p(x) = p(y);
+	}
 	if (p(y) == nil)
 	{
 		root(t) = x;
@@ -254,6 +284,7 @@ rb_node *rb_delete(rb_tree *t, rb_node *z)
 		key(z) = key(y);
 		val(z) = val(y);
 	}
+
 	if (color(y) == black)
 	{
 		rb_node *w;
