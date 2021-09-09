@@ -1,12 +1,13 @@
 #include "nu.h"
+#include <assert.h>
 
 nu_bool *nu_new_bool(bool v)
 {
-	nu_bool *r = (nu_bool *)malloc(sizeof(nu_bool));
+	nu_bool *r = NU_NEW(nu_bool);
 	assert(r != NULL);
 	r->type = NU_BOOL_T;
 	r->refs = 0u;
-	r->value = v;
+	r->data = v;
 	return r;
 }
 
@@ -16,11 +17,11 @@ bool _nu_none_to_bool(nu_base *o)
 }
 bool _nu_bool_to_bool(nu_bool *o)
 {
-	return o->value;
+	return o->data;
 }
 bool _nu_num_to_bool(nu_num *o)
 {
-	return o->value != 0.0;
+	return o->data != 0.0;
 }
 bool _nu_str_to_bool(nu_base *o)
 {

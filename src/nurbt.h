@@ -1,6 +1,7 @@
 #ifndef __NU_RBT_H__
 #define __NU_RBT_H__
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,7 +37,7 @@ rb_node *rb_prev(rb_node *node);
 rb_node *rb_search(rb_tree *tree, size_t key);
 void rb_insert(rb_tree *tree, rb_node *node);
 rb_node *rb_delete(rb_tree *tree, rb_node *node);
-void rb_traverse(rb_tree *tree, rb_traverse_fptr func);
+void rb_in_order(rb_tree *tree, rb_traverse_fptr func);
 
 #ifdef __cplusplus
 }

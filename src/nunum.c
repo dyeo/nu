@@ -1,27 +1,29 @@
 #include "nu.h"
 #include <math.h>
+#include <assert.h>
 
 nu_num *nu_new_num(num_t v)
 {
-	nu_num *r = (nu_num *)malloc(sizeof(nu_num));
+	nu_num *r = NU_NEW(nu_num);
 	assert(r != NULL);
 	r->type = NU_NUM_T;
 	r->refs = 0u;
-	r->value = v;
+	r->data = v;
 	return r;
 }
 
+NU_OP_DEF(nu_to_num_t_t, num_t, nu_base *);
 num_t _nu_none_to_num_t(nu_base *o)
 {
 	return 0.0;
 }
 num_t _nu_bool_to_num_t(nu_bool *o)
 {
-	return o->value;
+	return o->data;
 }
 num_t _nu_num_to_num_t(nu_num *o)
 {
-	return o->value;
+	return o->data;
 }
 num_t _nu_str_to_num_t(nu_base *o)
 {
@@ -43,15 +45,15 @@ num_t _nu_thr_to_num_t(nu_base *o)
 {
 	return 0.0;
 }
-num_t(*_nu_to_num_t_ptr[8])(nu_base *) = {
-	(NU_FPTR(num_t, nu_base *))_nu_none_to_num_t,
-	(NU_FPTR(num_t, nu_base *))_nu_bool_to_num_t,
-	(NU_FPTR(num_t, nu_base *))_nu_num_to_num_t,
-	(NU_FPTR(num_t, nu_base *))_nu_str_to_num_t,
-	(NU_FPTR(num_t, nu_base *))_nu_fn_to_num_t,
-	(NU_FPTR(num_t, nu_base *))_nu_arr_to_num_t,
-	(NU_FPTR(num_t, nu_base *))_nu_obj_to_num_t,
-	(NU_FPTR(num_t, nu_base *))_nu_thr_to_num_t };
+const nu_to_num_t_t _nu_to_num_t_ptr[8] = {
+	(nu_to_num_t_t)_nu_none_to_num_t,
+	(nu_to_num_t_t)_nu_bool_to_num_t,
+	(nu_to_num_t_t)_nu_num_to_num_t,
+	(nu_to_num_t_t)_nu_str_to_num_t,
+	(nu_to_num_t_t)_nu_fn_to_num_t,
+	(nu_to_num_t_t)_nu_arr_to_num_t,
+	(nu_to_num_t_t)_nu_obj_to_num_t,
+	(nu_to_num_t_t)_nu_thr_to_num_t };
 
 double nu_to_double(nu_base *v)
 {
@@ -70,23 +72,15 @@ int nu_to_int(nu_base *v)
 	return (int)_nu_to_num_t_ptr[v->type](v);
 }
 
-nu_base *_nu_none_add(nu_base *l, nu_base *r)
-{
-	return &nu_none;
-}
 nu_base *_nu_bool_add(nu_bool *l, nu_bool *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->value + r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->data + r->data);
 }
 nu_base *_nu_num_add(nu_num *l, nu_num *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(l->value + r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(l->data + r->data);
 }
 nu_base *_nu_str_add(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_fn_add(nu_base *l, nu_base *r)
 {
 	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
 }
@@ -94,118 +88,70 @@ nu_base *_nu_arr_add(nu_base *l, nu_base *r)
 {
 	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
 }
-nu_base *_nu_obj_add(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_thr_add(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_oper_t _nu_add_ptr[8] = {
-	(nu_oper_t)_nu_none_add,
+const nu_oper_t _nu_add_ptr[8] = {
+	(nu_oper_t)nu_oper_none,
 	(nu_oper_t)_nu_bool_add,
 	(nu_oper_t)_nu_num_add,
 	(nu_oper_t)_nu_str_add,
-	(nu_oper_t)_nu_fn_add,
+	(nu_oper_t)nu_oper_none,
 	(nu_oper_t)_nu_arr_add,
-	(nu_oper_t)_nu_obj_add,
-	(nu_oper_t)_nu_thr_add };
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none };
 
 nu_base *nu_add(nu_base *l, nu_base *r)
 {
 	return _nu_add_ptr[l->type](l, r);
 }
 
-nu_base *_nu_none_sub(nu_base *l, nu_base *r)
-{
-	return &nu_none;
-}
 nu_base *_nu_bool_sub(nu_bool *l, nu_bool *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->value - r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->data - r->data);
 }
 nu_base *_nu_num_sub(nu_num *l, nu_num *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(l->value - r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(l->data - r->data);
 }
 nu_base *_nu_str_sub(nu_base *l, nu_base *r)
 {
 	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
 }
-nu_base *_nu_fn_sub(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_arr_sub(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_obj_sub(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_thr_sub(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_oper_t _nu_sub_ptr[8] = {
-	(nu_oper_t)_nu_none_sub,
+const nu_oper_t _nu_sub_ptr[8] = {
+	(nu_oper_t)nu_oper_none,
 	(nu_oper_t)_nu_bool_sub,
 	(nu_oper_t)_nu_num_sub,
 	(nu_oper_t)_nu_str_sub,
-	(nu_oper_t)_nu_fn_sub,
-	(nu_oper_t)_nu_arr_sub,
-	(nu_oper_t)_nu_obj_sub,
-	(nu_oper_t)_nu_thr_sub };
-
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none
+};
 nu_base *nu_sub(nu_base *l, nu_base *r)
 {
 	return _nu_sub_ptr[l->type](l, r);
 }
 
-nu_base *_nu_none_mul(nu_base *l, nu_base *r)
-{
-	return &nu_none;
-}
 nu_base *_nu_bool_mul(nu_bool *l, nu_bool *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->value * r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->data * r->data);
 }
 nu_base *_nu_num_mul(nu_num *l, nu_num *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(l->value * r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(l->data * r->data);
 }
 nu_base *_nu_str_mul(nu_base *l, nu_base *r)
 {
 	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
 }
-nu_base *_nu_fn_mul(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_arr_mul(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_obj_mul(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_thr_mul(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_oper_t _nu_mul_ptr[8] = {
-	(nu_oper_t)_nu_none_mul,
+const nu_oper_t _nu_mul_ptr[8] = {
+	(nu_oper_t)nu_oper_none,
 	(nu_oper_t)_nu_bool_mul,
 	(nu_oper_t)_nu_num_mul,
 	(nu_oper_t)_nu_str_mul,
-	(nu_oper_t)_nu_fn_mul,
-	(nu_oper_t)_nu_arr_mul,
-	(nu_oper_t)_nu_obj_mul,
-	(nu_oper_t)_nu_thr_mul };
-
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none
+};
 nu_base *nu_mul(nu_base *l, nu_base *r)
 {
 	return _nu_mul_ptr[l->type](l, r);
@@ -217,90 +163,45 @@ nu_base *_nu_none_div(nu_base *l, nu_base *r)
 }
 nu_base *_nu_bool_div(nu_bool *l, nu_bool *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->value / r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->data / r->data);
 }
 nu_base *_nu_num_div(nu_num *l, nu_num *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(l->value / r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(l->data / r->data);
 }
-nu_base *_nu_str_div(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_fn_div(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_arr_div(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_obj_div(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_thr_div(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-
-nu_oper_t _nu_div_ptr[8] = {
-	(nu_oper_t)_nu_none_div,
+const nu_oper_t _nu_div_ptr[8] = {
+	(nu_oper_t)nu_oper_none,
 	(nu_oper_t)_nu_bool_div,
 	(nu_oper_t)_nu_num_div,
-	(nu_oper_t)_nu_str_div,
-	(nu_oper_t)_nu_fn_div,
-	(nu_oper_t)_nu_arr_div,
-	(nu_oper_t)_nu_obj_div,
-	(nu_oper_t)_nu_thr_div };
-
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none
+};
 nu_base *nu_div(nu_base *l, nu_base *r)
 {
 	return _nu_div_ptr[l->type](l, r);
 }
 
-nu_base *_nu_none_mod(nu_base *l, nu_base *r)
-{
-	return &nu_none;
-}
 nu_base *_nu_bool_mod(nu_bool *l, nu_bool *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->value % r->value);
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_bool(l->data % r->data);
 }
 nu_base *_nu_num_mod(nu_num *l, nu_num *r)
 {
-	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(fmod(l->value, r->value));
+	return ((nu_base *)r) == &nu_none ? &nu_none : nu_new_num(fmod(l->data, r->data));
 }
-nu_base *_nu_str_mod(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_fn_mod(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_arr_mod(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_obj_mod(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-nu_base *_nu_thr_mod(nu_base *l, nu_base *r)
-{
-	return ((nu_base *)r) == &nu_none ? &nu_none : &nu_none;
-}
-
 nu_oper_t _nu_mod_ptr[8] = {
-	(nu_oper_t)_nu_none_mod,
+	(nu_oper_t)nu_oper_none,
 	(nu_oper_t)_nu_bool_mod,
 	(nu_oper_t)_nu_num_mod,
-	(nu_oper_t)_nu_str_mod,
-	(nu_oper_t)_nu_fn_mod,
-	(nu_oper_t)_nu_arr_mod,
-	(nu_oper_t)_nu_obj_mod,
-	(nu_oper_t)_nu_thr_mod };
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none,
+	(nu_oper_t)nu_oper_none
+};
 
 nu_base *nu_mod(nu_base *l, nu_base *r)
 {

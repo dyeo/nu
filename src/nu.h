@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+
+#include "nurbt.h"
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -21,41 +24,59 @@ typedef double num_t;
 typedef float num_t;
 #endif
 
-#define NU_NONE_T   0ul
-#define NU_BOOL_T   1ul
-#define NU_NUM_T    2ul
-#define NU_STR_T    3ul
-#define NU_FN_T     4ul
-#define NU_ARR_T    5ul
-#define NU_OBJ_T    6ul
-#define NU_THR_T    7ul
+#define NU_NEW(T) (T*)malloc(sizeof(T))
+#define NU_ANEW(T, C) (T*)malloc(sizeof(T)*(C))
 
-#define NU_BASE_HEADER() \
-    size_t type : NU_BASE_TYPE_BITS; \
-    size_t refs : NU_BASE_REFS_BITS;
+#define NU_NONE_T 0
+#define NU_BOOL_T 1
+#define NU_NUM_T  2
+#define NU_STR_T  3
+#define NU_FN_T   4
+#define NU_ARR_T  5
+#define NU_OBJ_T  6
+#define NU_THR_T  7
+
+#define NU_BASE_HEADER size_t type : NU_BASE_TYPE_BITS, refs : NU_BASE_REFS_BITS
 
 /**
  * Object Definitions
  */
 
-typedef struct nu_base {
-    NU_BASE_HEADER()
+typedef struct nu_base
+{
+    NU_BASE_HEADER;
 } nu_base;
 
-typedef struct nu_bool {
-    NU_BASE_HEADER()
-    bool value;
+typedef struct nu_bool
+{
+    NU_BASE_HEADER;
+    bool data;
 } nu_bool;
 
-typedef struct nu_num {
-    NU_BASE_HEADER()
-    num_t value;
+typedef struct nu_num
+{
+    NU_BASE_HEADER;
+    num_t data;
 } nu_num;
 
-typedef struct nu_str {
-    NU_BASE_HEADER()
-    uint8_t *value;
+typedef struct nu_str
+{
+    NU_BASE_HEADER;
+    uint8_t *data;
 } nu_str;
+
+typedef struct nu_arr
+{
+    NU_BASE_HEADER;
+    size_t length;
+    nu_base *data;
+} nu_arr;
+
+typedef struct nu_obj
+{
+    NU_BASE_HEADER;
+    rb_tree *data;
+} nu_obj;
 
 /**
  * Function Pointer Definition
@@ -78,6 +99,7 @@ const extern nu_num nu_zero;
 const extern nu_num nu_one;
 const extern nu_str nu_empty;
 
+inline static nu_base *nu_oper_none(nu_base *_0, nu_base *_1) { return (nu_base *)(&nu_none); }
 
 /**
  * Initialization, Finalization, & Interpreter State
@@ -93,6 +115,8 @@ bool nu_finalize();
  * nubase.c
  */
 
+const char *nu_repr(nu_base *o);
+
 nu_base *nu_lt(nu_base *l, nu_base *r);
 nu_base *nu_le(nu_base *l, nu_base *r);
 nu_base *nu_eq(nu_base *l, nu_base *r);
@@ -100,14 +124,14 @@ nu_base *nu_ne(nu_base *l, nu_base *r);
 nu_base *nu_ge(nu_base *l, nu_base *r);
 nu_base *nu_gt(nu_base *l, nu_base *r);
 
-bool nu_is_none(nu_base *o);
-bool nu_is_bool(nu_base *o);
-bool nu_is_num(nu_base *o);
-bool nu_is_str(nu_base *o);
-bool nu_is_fn(nu_base *o);
-bool nu_is_arr(nu_base *o);
-bool nu_is_obj(nu_base *o);
-bool nu_is_thr(nu_base *o);
+inline bool nu_is_none(nu_base *o) { return o->type == NU_NONE_T; }
+inline bool nu_is_bool(nu_base *o) { return o->type == NU_BOOL_T; }
+inline bool nu_is_num(nu_base *o) { return o->type == NU_NUM_T; }
+inline bool nu_is_str(nu_base *o) { return o->type == NU_STR_T; }
+inline bool nu_is_fn(nu_base *o) { return o->type == NU_FN_T; }
+inline bool nu_is_arr(nu_base *o) { return o->type == NU_ARR_T; }
+inline bool nu_is_obj(nu_base *o) { return o->type == NU_OBJ_T; }
+inline bool nu_is_thr(nu_base *o) { return o->type == NU_THR_T; }
 
 /**
  * Boolean Methods

@@ -84,13 +84,14 @@ rb_tree *rb_new_tree()
 	return r;
 }
 
-void rb_traverse(rb_tree *tree, rb_traverse_fptr func)
+void rb_in_order(rb_tree *t, rb_traverse_fptr f)
 {
-	rb_node *curr = rb_min(tree->root);
-	do
+	rb_node *curr = rb_min(t->root);
+	while (curr != &rb_nil)
 	{
-		func(curr);
-	} while ((curr = rb_next(curr)) != &rb_nil);
+		f(curr);
+		curr = rb_next(curr);
+	}
 }
 
 void rb_left_rotate(rb_tree *t, rb_node *x)

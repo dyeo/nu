@@ -1,34 +1,33 @@
 #include "tests.h"
+#include "../src/nu.h"
 #include "../src/nurbt.h"
 
 #include <stdio.h>
 
-void print_node(rb_node *curr)
+void rb_print(rb_node *curr)
 {
-	printf("%i\n", curr->key);
+    printf("%llu: %p\n", curr->key, curr->val);
 }
 
 int main(int argc, char **argv)
 {
-	rb_tree *a = rb_new_tree();
-	for (int i = 0; i < 24; ++i)
-	{
-		rb_insert(a, rb_new_node(i, NULL));
-	}
+    nu_base *o = nu_new_num(42);
+    printf("%s\n\n", nu_repr(o));
 
-	rb_traverse(a, print_node);
+    rb_tree *a = rb_new_tree();
+    for (int i = 0; i < 32; ++i)
+    {
+        rb_insert(a, rb_new_node(i, 0));
+    }
 
-	//assert(rb_search(a, 50) != NIL);
-	rb_node *s = rb_search(a, 10);
-	rb_delete(a, s);
+    rb_in_order(a, rb_print);
 
-	printf("\n");
+    printf("\n");
 
-	rb_traverse(a, print_node);
-	//nu_initialize();
-	//nu_num *a = nu_new_num(25);
-	//nu_num *b = nu_new_num(25);
-	//nu_bool *c = nu_le(a, b);
-	//printf("%i", nu_to_bool(c));
-	//nu_finalize();
+    for (int i = 0; i < 32; ++i)
+    {
+        rb_delete(a, rb_search(a, i));
+    }
+
+    rb_in_order(a, rb_print);
 }
