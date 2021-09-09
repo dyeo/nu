@@ -21,14 +21,14 @@ typedef double num_t;
 typedef float num_t;
 #endif
 
-#define NU_NONE_T   0
-#define NU_BOOL_T   1
-#define NU_NUM_T    2
-#define NU_STR_T    3
-#define NU_FN_T     4
-#define NU_ARR_T    5
-#define NU_OBJ_T    6
-#define NU_THR_T    7
+#define NU_NONE_T   0ul
+#define NU_BOOL_T   1ul
+#define NU_NUM_T    2ul
+#define NU_STR_T    3ul
+#define NU_FN_T     4ul
+#define NU_ARR_T    5ul
+#define NU_OBJ_T    6ul
+#define NU_THR_T    7ul
 
 #define NU_BASE_HEADER() \
     size_t type : NU_BASE_TYPE_BITS; \
@@ -52,6 +52,11 @@ typedef struct nu_num {
     num_t value;
 } nu_num;
 
+typedef struct nu_str {
+    NU_BASE_HEADER()
+    uint8_t *value;
+} nu_str;
+
 /**
  * Function Pointer Definition
  */
@@ -71,6 +76,7 @@ const extern nu_bool nu_true;
 const extern nu_bool nu_false;
 const extern nu_num nu_zero;
 const extern nu_num nu_one;
+const extern nu_str nu_empty;
 
 
 /**
@@ -84,7 +90,7 @@ bool nu_finalize();
 
 /**
  * Generic Object Methods
- * nuobject.c
+ * nubase.c
  */
 
 nu_base *nu_lt(nu_base *l, nu_base *r);
@@ -94,6 +100,14 @@ nu_base *nu_ne(nu_base *l, nu_base *r);
 nu_base *nu_ge(nu_base *l, nu_base *r);
 nu_base *nu_gt(nu_base *l, nu_base *r);
 
+bool nu_is_none(nu_base *o);
+bool nu_is_bool(nu_base *o);
+bool nu_is_num(nu_base *o);
+bool nu_is_str(nu_base *o);
+bool nu_is_fn(nu_base *o);
+bool nu_is_arr(nu_base *o);
+bool nu_is_obj(nu_base *o);
+bool nu_is_thr(nu_base *o);
 
 /**
  * Boolean Methods
