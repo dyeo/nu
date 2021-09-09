@@ -23,6 +23,7 @@ typedef struct rb_tree
 } rb_tree;
 
 const extern rb_node rb_nil;
+#define RB_NIL (&rb_nil)
 
 typedef void(*rb_traverse_fptr(rb_node *));
 
