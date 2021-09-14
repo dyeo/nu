@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 
+#include "utf8.h"
 #include "nurbt.h"
 
 #include <stdlib.h>
@@ -62,7 +63,7 @@ typedef struct nu_num
 typedef struct nu_str
 {
     NU_BASE_HEADER;
-    uint8_t *data;
+    utf8 *data;
 } nu_str;
 
 typedef struct nu_arr
@@ -115,6 +116,7 @@ bool nu_finalize();
  * nubase.c
  */
 
+nu_num *nu_hash(nu_base *o);
 const char *nu_repr(nu_base *o);
 
 nu_base *nu_lt(nu_base *l, nu_base *r);

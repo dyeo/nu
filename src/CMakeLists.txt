@@ -1,5 +1,7 @@
 add_library(
     nu STATIC
+    utf8.h
+    utf8.c
 	nurbt.h
 	nurbt.c
     nu.h
