@@ -11,13 +11,10 @@ void rb_print(rb_node *curr)
 
 int main(int argc, char **argv)
 {
-
-    utf8 a[4] = { 0xc0, 0xA1, 0x99, 0x9C };
-    utf8 *b = "\xe4\xbd\xa0\xe5\xa5\xbd\xe4\xb8\x96\xe7\x95\x8c";
-    int c = cpcmp(a, b);
-    
-    printf("%llu\n", utfclen(b));
-    printf("%llu\n", utflen("this is a test"));
+    nu_num *n = nu_new_num(128);
+    nu_str *s = nu_new_str("\3");
+    printf("128 : %llu\n", nu_to_uint64(nu_hash(n)));
+    printf("%s : %llu\n", s->data, nu_to_uint64(nu_hash(s)));
     //nu_base *o = nu_new_num(42);
     //printf("%s\n\n", nu_repr(o));
     //

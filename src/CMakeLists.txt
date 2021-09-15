@@ -1,5 +1,6 @@
 add_library(
     nu STATIC
+    utils.h
     utf8.h
     utf8.c
 	nurbt.h
@@ -9,4 +10,7 @@ add_library(
     nubase.c
     nubool.c
     nunum.c
+    nustr.c
 )
+
+target_link_libraries(nu m)

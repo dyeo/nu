@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-
+#include "utils.h"
 #include "utf8.h"
 #include "nurbt.h"
 
@@ -63,7 +63,7 @@ typedef struct nu_num
 typedef struct nu_str
 {
     NU_BASE_HEADER;
-    utf8 *data;
+    const char *data;
 } nu_str;
 
 typedef struct nu_arr
@@ -102,6 +102,9 @@ const extern nu_str nu_empty;
 
 inline static nu_base *nu_oper_none(nu_base *_0, nu_base *_1) { return (nu_base *)(&nu_none); }
 
+#define NU_NONE (&nu_none)
+#define NU_NONE_OF(T) (T)(&nu_none)
+
 /**
  * Initialization, Finalization, & Interpreter State
  * nu.c
@@ -126,14 +129,14 @@ nu_base *nu_ne(nu_base *l, nu_base *r);
 nu_base *nu_ge(nu_base *l, nu_base *r);
 nu_base *nu_gt(nu_base *l, nu_base *r);
 
-inline bool nu_is_none(nu_base *o) { return o->type == NU_NONE_T; }
-inline bool nu_is_bool(nu_base *o) { return o->type == NU_BOOL_T; }
-inline bool nu_is_num(nu_base *o) { return o->type == NU_NUM_T; }
-inline bool nu_is_str(nu_base *o) { return o->type == NU_STR_T; }
-inline bool nu_is_fn(nu_base *o) { return o->type == NU_FN_T; }
-inline bool nu_is_arr(nu_base *o) { return o->type == NU_ARR_T; }
-inline bool nu_is_obj(nu_base *o) { return o->type == NU_OBJ_T; }
-inline bool nu_is_thr(nu_base *o) { return o->type == NU_THR_T; }
+inline static bool nu_is_none(nu_base *o) { return o->type == NU_NONE_T; }
+inline static bool nu_is_bool(nu_base *o) { return o->type == NU_BOOL_T; }
+inline static bool nu_is_num(nu_base *o) { return o->type == NU_NUM_T; }
+inline static bool nu_is_str(nu_base *o) { return o->type == NU_STR_T; }
+inline static bool nu_is_fn(nu_base *o) { return o->type == NU_FN_T; }
+inline static bool nu_is_arr(nu_base *o) { return o->type == NU_ARR_T; }
+inline static bool nu_is_obj(nu_base *o) { return o->type == NU_OBJ_T; }
+inline static bool nu_is_thr(nu_base *o) { return o->type == NU_THR_T; }
 
 /**
  * Boolean Methods
@@ -152,16 +155,30 @@ bool nu_to_bool(nu_base *o);
 
 nu_num *nu_new_num(num_t v);
 
-double nu_to_double(nu_base *v);
-long nu_to_long(nu_base *v);
-float nu_to_float(nu_base *v);
-int nu_to_int(nu_base *v);
+uint8_t nu_to_uint8(nu_base *v);
+int8_t nu_to_int8(nu_base *v);
+uint16_t nu_to_uint16(nu_base *v);
+int16_t nu_to_int16(nu_base *v);
+uint32_t nu_to_uint32(nu_base *v);
+int32_t nu_to_int32(nu_base *v);
+uint64_t nu_to_uint64(nu_base *v);
+int64_t nu_to_int64(nu_base *v);
+float nu_to_float(nu_base * v);
+double nu_to_double(nu_base * v);
 
 nu_base *nu_add(nu_base *l, nu_base *r);
 nu_base *nu_sub(nu_base *l, nu_base *r);
 nu_base *nu_mul(nu_base *l, nu_base *r);
 nu_base *nu_div(nu_base *l, nu_base *r);
 nu_base *nu_mod(nu_base *l, nu_base *r);
+
+
+/**
+ * String Methods
+ * nustr.c
+ */
+
+nu_str *nu_new_str(const char *v);
 
 #ifdef __cplusplus
 }
