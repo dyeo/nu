@@ -13,21 +13,6 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-#if _WIN64 || _LP64 || __LP64__ || __amd64__ || __amd64 || __x86_64__ || __x86_64 || _M_AMD_64 || __aarch64__
-#define NU_64_BIT
-#define NU_BASE_TYPE_BITS 3
-#define NU_BASE_REFS_BITS 61
-typedef double num_t;
-#else
-#define NU_32_BIT
-#define NU_BASE_TYPE_BITS 3
-#define NU_BASE_REFS_BITS 29
-typedef float num_t;
-#endif
-
-#define NU_NEW(T) (T*)malloc(sizeof(T))
-#define NU_ANEW(T, C) (T*)malloc(sizeof(T)*(C))
-
 #define NU_NONE_T 0
 #define NU_BOOL_T 1
 #define NU_NUM_T  2

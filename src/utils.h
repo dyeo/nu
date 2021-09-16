@@ -9,6 +9,21 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
+#if _WIN64 || _LP64 || __LP64__ || __amd64__ || __amd64 || __x86_64__ || __x86_64 || _M_AMD_64 || __aarch64__
+#define NU_64_BIT
+#define NU_BASE_TYPE_BITS 3
+#define NU_BASE_REFS_BITS 61
+typedef double num_t;
+#else
+#define NU_32_BIT
+#define NU_BASE_TYPE_BITS 3
+#define NU_BASE_REFS_BITS 29
+typedef float num_t;
+#endif
+
+#define NU_NEW(T) (T*)malloc(sizeof(T))
+#define NU_ANEW(T, C) (T*)malloc(sizeof(T)*(C))
+
 #define NU_FATAL(msg) { printf("NU_FATAL: %s\n", msg); exit(1); }
 
 inline static uint8_t rol8(uint8_t x, uint8_t bits)
@@ -73,9 +88,9 @@ inline static uint32_t hash32(const char *str)
     for (;*str;++str)
     {
         h ^= *str;
-        h *= 1540483477ul;
-        h ^= rol32(h, 15);
         h *= 2147483647ul;
+        h ^= rol32(h, 15);
+        h *= 1540483477ul;
         h ^= ror32(h, 15);
     }
     return h;
@@ -93,13 +108,19 @@ inline static uint64_t hash64(const char *str)
     for (;*str;++str)
     {
         h ^= *str;
-        h *= 525201411107845655ull;
-        h ^= rol64(h, 47);
         h *= 6616326155283851693ull;
+        h ^= rol64(h, 47);
+        h *= 525201411107845655ull;
         h ^= ror64(h, 47);
     }
     return h;
 }
+
+#ifdef NU_64_BIT
+#define hashN(str) hash64(str)
+#else
+#define hashN(str) hash32(str)
+#endif
 
 #if __cplusplus
 }

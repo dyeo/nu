@@ -18,7 +18,7 @@ nu_num *_nu_num_hash(nu_num *o)
 }
 nu_num *_nu_str_hash(nu_str *o)
 {
-    return ((nu_base *)o) == NU_NONE ? NU_NONE : nu_new_num((num_t)hash64(o->data));
+    return ((nu_base *)o) == NU_NONE ? NU_NONE : nu_new_num((num_t)hashN(o->data));
 }
 nu_num *_nu_fn_hash(nu_base *o)
 {
