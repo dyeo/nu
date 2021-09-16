@@ -17,13 +17,9 @@ bool nu_initialize()
 bool nu_finalize()
 {}
 
-const char *nu_repr(nu_base *o)
+const char *nu_repr(const nu_base *o)
 {
     assert(o != NULL);
-    if (nu_is_none(o))
-    {
-        return "none";
-    }
     if (nu_is_bool(o))
     {
         return ((nu_bool *)o)->data ? "true" : "false";
@@ -35,4 +31,9 @@ const char *nu_repr(nu_base *o)
         snprintf(buf, size, "%f", ((nu_num *)o)->data);
         return buf;
     }
+    if (nu_is_str(o))
+    {
+        return ((nu_str*)o)->data;
+    }
+    return "none";
 }

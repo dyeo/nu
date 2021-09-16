@@ -103,7 +103,6 @@ const extern nu_str nu_empty;
 inline static nu_base *nu_oper_none(nu_base *_0, nu_base *_1) { return (nu_base *)(&nu_none); }
 
 #define NU_NONE (&nu_none)
-#define NU_NONE_OF(T) (T)(&nu_none)
 
 /**
  * Initialization, Finalization, & Interpreter State
@@ -119,8 +118,16 @@ bool nu_finalize();
  * nubase.c
  */
 
-nu_num *nu_hash(nu_base *o);
-const char *nu_repr(nu_base *o);
+nu_num *nu_hash(const nu_base *o);
+const char *nu_repr(const nu_base *o);
+
+inline static void nu_incref(nu_base *o) { if(o->refs == SIZE_MAX) { NU_FATAL("nu_base has too many refs"); } o->refs++; }
+inline static void nu_decref(nu_base *o) { if(o->refs == 0) { NU_FATAL("nu_base has no refs"); } o->refs--; }
+inline static bool nu_opt_incref(nu_base *o) { if(o != NULL && o != NU_NONE) { nu_incref(o); return true; } return false; }
+inline static bool nu_opt_decref(nu_base *o) { if(o != NULL && o != NU_NONE) { nu_decref(o); return true; } return false; }
+
+inline static void nu_free(nu_base *o) { } // TODO: define later: free memory of any nu_base generically
+inline static bool nu_opt_free(nu_base *o) { if(o != NULL && o->refs > 0) { nu_free(o); return true; } return false; }
 
 nu_base *nu_lt(nu_base *l, nu_base *r);
 nu_base *nu_le(nu_base *l, nu_base *r);
@@ -163,6 +170,7 @@ uint32_t nu_to_uint32(nu_base *v);
 int32_t nu_to_int32(nu_base *v);
 uint64_t nu_to_uint64(nu_base *v);
 int64_t nu_to_int64(nu_base *v);
+size_t nu_to_size_t(nu_base *v);
 float nu_to_float(nu_base * v);
 double nu_to_double(nu_base * v);
 
@@ -179,6 +187,17 @@ nu_base *nu_mod(nu_base *l, nu_base *r);
  */
 
 nu_str *nu_new_str(const char *v);
+
+
+/**
+ * Object Methods
+ * nuobj.c
+ */
+
+nu_obj *nu_new_obj(nu_obj **keys, nu_obj **vals, size_t len);
+
+void nu_set_val(nu_obj *obj, nu_base *key, nu_base *val);
+nu_base *nu_get_val(nu_obj *obj, nu_base *key);
 
 #ifdef __cplusplus
 }

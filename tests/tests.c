@@ -12,9 +12,15 @@ void rb_print(rb_node *curr)
 int main(int argc, char **argv)
 {
     nu_num *n = nu_new_num(128);
-    nu_str *s = nu_new_str("\3");
-    printf("128 : %llu\n", nu_to_uint64(nu_hash(n)));
-    printf("%s : %llu\n", s->data, nu_to_uint64(nu_hash(s)));
+    nu_str *s = nu_new_str("hello world!");
+    printf("128 : %llu\n", nu_to_size_t(nu_hash(n)));
+    printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
+
+    nu_obj *o = nu_new_obj(NULL, NULL, 0);
+    nu_set_val(o, n, s);
+    nu_base *t = nu_get_val(o, n);
+    printf("%s", nu_repr(t));
+
     //nu_base *o = nu_new_num(42);
     //printf("%s\n\n", nu_repr(o));
     //

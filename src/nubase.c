@@ -4,6 +4,10 @@
 
 NU_OP_DEF(nu_hash_fptr, nu_num *, nu_base *);
 
+nu_num *_nu_none_hash(nu_base *o)
+{
+    return nu_new_num(0);
+}
 nu_num *_nu_bool_hash(nu_bool *o)
 {
     return ((nu_base *)o) == NU_NONE ? NU_NONE : nu_new_num(o->data);
@@ -18,23 +22,23 @@ nu_num *_nu_str_hash(nu_str *o)
 }
 nu_num *_nu_fn_hash(nu_base *o)
 {
-    return ((nu_base *)o) == NU_NONE ? NU_NONE : NU_NONE;
+    return nu_new_num(0); // hashable???
 }
 nu_num *_nu_arr_hash(nu_base *o)
 {
-    return ((nu_base *)o) == NU_NONE ? NU_NONE : NU_NONE;
+    return nu_new_num(0); // TODO: hash all array elems
 }
 nu_num *_nu_obj_hash(nu_base *o)
 {
-    return ((nu_base *)o) == NU_NONE ? NU_NONE : NU_NONE;
+    return nu_new_num(0); // TODO: custom hash function lookup 
 }
 nu_num *_nu_thr_hash(nu_base *o)
 {
-    return ((nu_base *)o) == NU_NONE ? NU_NONE : NU_NONE;
+    return nu_new_num(0); // hashable???
 }
 
 nu_hash_fptr _nu_hash_ptr[8] = {
-    (nu_hash_fptr)nu_oper_none,
+    (nu_hash_fptr)_nu_none_hash,
     (nu_hash_fptr)_nu_bool_hash,
     (nu_hash_fptr)_nu_num_hash,
     (nu_hash_fptr)_nu_str_hash,
@@ -44,7 +48,7 @@ nu_hash_fptr _nu_hash_ptr[8] = {
     (nu_hash_fptr)_nu_thr_hash
 };
 
-nu_num *nu_hash(nu_base *o)
+nu_num *nu_hash(const nu_base *o)
 {
     return _nu_hash_ptr[o->type](o);
 }

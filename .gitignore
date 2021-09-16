@@ -1,10 +1,21 @@
-build/
+# Ignore linux executables (no extension files)
+*
+!*/
+!*.*
 
+# Ignore vscode stuff
+**/.vscode
+language-server-log.txt
+
+# Ignore CMake build outputs
+build/
+out/
+
+# Ignore visual studio stuff
 *.sln
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
-
 
 # Created by https://www.toptal.com/developers/gitignore/api/cmake,visualstudio,visualstudiocode,c
 # Edit at https://www.toptal.com/developers/gitignore?templates=cmake,visualstudio,visualstudiocode,c

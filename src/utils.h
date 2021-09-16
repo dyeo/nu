@@ -7,6 +7,9 @@ extern "C" {
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
+
+#define NU_FATAL(msg) { printf("NU_FATAL: %s\n", msg); exit(1); }
 
 inline static uint8_t rol8(uint8_t x, uint8_t bits)
 {

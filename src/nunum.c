@@ -79,6 +79,7 @@ uint32_t nu_to_uint32(nu_base *v) { return (uint32_t)_nu_to_num_t_ptr[v->type](v
 int32_t nu_to_int32(nu_base *v) { return (int32_t)_nu_to_num_t_ptr[v->type](v); }
 uint64_t nu_to_uint64(nu_base *v) { return (uint64_t)_nu_to_num_t_ptr[v->type](v); }
 int64_t nu_to_int64(nu_base *v) { return (int64_t)_nu_to_num_t_ptr[v->type](v); }
+size_t nu_to_size_t(nu_base *v) { return (size_t)_nu_to_num_t_ptr[v->type](v); }
 float nu_to_float(nu_base * v) { return (float)_nu_to_num_t_ptr[v->type](v); }
 double nu_to_double(nu_base * v) { return (double)_nu_to_num_t_ptr[v->type](v); }
 

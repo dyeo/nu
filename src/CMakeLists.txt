@@ -11,6 +11,7 @@ add_library(
     nubool.c
     nunum.c
     nustr.c
+    nuobj.c
 )
 
 target_link_libraries(nu m)

@@ -30,7 +30,9 @@ const extern rb_node rb_nil;
 typedef void(*rb_traverse_fptr(rb_node *));
 
 rb_tree *rb_new_tree();
+void rb_free_tree(rb_tree *tree);
 rb_node *rb_new_node(size_t key, void *val);
+void rb_free_node(rb_node *node);
 rb_node *rb_min(rb_node *node);
 rb_node *rb_max(rb_node *node);
 rb_node *rb_next(rb_node *node);

@@ -5,6 +5,19 @@
 
 const rb_node rb_nil = { black, &rb_nil, &rb_nil, &rb_nil, 0ul, NULL };
 
+rb_tree *rb_new_tree()
+{
+	rb_tree *r = (rb_tree *)malloc(sizeof(rb_tree));
+	assert(r != NULL);
+	r->root = &rb_nil;
+	return r;
+}
+
+void rb_free_tree(rb_tree *tree)
+{
+	rb_free_node(tree->root);
+}
+
 rb_node *rb_new_node(size_t key, void *val)
 {
 	rb_node *r = (rb_node *)malloc(sizeof(rb_node));
@@ -17,6 +30,15 @@ rb_node *rb_new_node(size_t key, void *val)
 	r->val = val;
 	return r;
 }
+
+void rb_free_node(rb_node *node)
+{
+	if(node == RB_NIL) return;
+	rb_free_node(node->left);
+	rb_free_node(node->right);
+	free(node);
+}
+
 
 rb_node *rb_min(rb_node *x)
 {
@@ -74,14 +96,6 @@ rb_node *rb_prev(rb_node *x)
 		y = y->parent;
 	}
 	return y;
-}
-
-rb_tree *rb_new_tree()
-{
-	rb_tree *r = (rb_tree *)malloc(sizeof(rb_tree));
-	assert(r != NULL);
-	r->root = &rb_nil;
-	return r;
 }
 
 void rb_in_order(rb_tree *t, rb_traverse_fptr f)
