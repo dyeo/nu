@@ -17,6 +17,7 @@ int main(int argc, char **argv)
     printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
 
     nu_obj *o = nu_new_obj(NULL, NULL, 0);
+    
     nu_set_val(o, n, s);
     nu_val *t = nu_get_val(o, n);
     const char *r = nu_repr(t);
@@ -25,7 +26,7 @@ int main(int argc, char **argv)
 
     printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
     nu_free(s);
-    printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
+    printf("%i", o == &(o->base));
 
 
     NU_ASSERT(false, "this failed successfully");

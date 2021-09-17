@@ -22,7 +22,8 @@ extern "C" {
 #define NU_OBJ_T  6
 #define NU_THR_T  7
 
-#define NU_BASE_HEADER size_t type : NU_BASE_TYPE_BITS, refs : NU_BASE_REFS_BITS
+#define NU_VAL_HEADER size_t type : NU_BASE_TYPE_BITS, refs : NU_BASE_REFS_BITS
+#define NU_BASE_HEADER union { struct { NU_VAL_HEADER; }; nu_val base; }
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Object Definitions
@@ -30,7 +31,7 @@ extern "C" {
 
 typedef struct nu_val
 {
-    NU_BASE_HEADER;
+    NU_VAL_HEADER;
 } nu_val;
 
 typedef struct nu_bool
