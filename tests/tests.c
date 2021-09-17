@@ -18,10 +18,19 @@ int main(int argc, char **argv)
 
     nu_obj *o = nu_new_obj(NULL, NULL, 0);
     nu_set_val(o, n, s);
-    nu_base *t = nu_get_val(o, n);
-    printf("%s", nu_repr(t));
+    nu_val *t = nu_get_val(o, n);
+    const char *r = nu_repr(t);
+    printf("%s\n", r);
+    free(r);
 
-    //nu_base *o = nu_new_num(42);
+    printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
+    nu_free(s);
+    printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
+
+
+    NU_ASSERT(false, "this failed successfully");
+
+    //nu_val *o = nu_new_num(42);
     //printf("%s\n\n", nu_repr(o));
     //
     //rb_tree *a = rb_new_tree();

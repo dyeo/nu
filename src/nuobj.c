@@ -2,10 +2,10 @@
 
 #include <assert.h>
 
-nu_obj *nu_new_obj(nu_obj **keys, nu_obj **vals, size_t len)
+nu_obj *nu_new_obj(nu_val **keys, nu_val **vals, size_t len)
 {
     nu_obj *r = NU_NEW(nu_obj);
-    assert(r != NULL);
+    NU_ASSERT(r != NULL, "heap allocation error");
     r->type = NU_OBJ_T;
     r->data = rb_new_tree();
     if (keys != NULL && vals != NULL && len > 0)
@@ -18,10 +18,26 @@ nu_obj *nu_new_obj(nu_obj **keys, nu_obj **vals, size_t len)
     return r;
 }
 
-void nu_set_val(nu_obj *obj, nu_base *key, nu_base *val)
+void _nu_iter_free(rb_node *n)
 {
-    if (obj == NULL || obj == NU_NONE) return;
-    if (key == NULL || key == NU_NONE) return;
+    nu_opt_free((nu_val*)n->val);
+}
+
+void nu_free_obj(nu_obj *o)
+{
+	o->type = NU_NONE_T;
+	o->refs = 0;
+    rb_free_tree_iter(o->data, _nu_iter_free);
+	o->data = NULL;
+    free(o);
+}
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+void nu_set_val(nu_obj *obj, nu_val *key, nu_val *val)
+{
+    if (obj == NU_NONE) return;
+    if (key == NU_NONE) return;
     nu_num *hash = nu_hash(key);
     size_t hashv = nu_to_size_t(hash);
     if (hashv == 0) return;
@@ -48,17 +64,19 @@ void nu_set_val(nu_obj *obj, nu_base *key, nu_base *val)
     }
 }
 
-nu_base *nu_get_val(nu_obj *obj, nu_base *key)
+nu_val *nu_get_val(nu_obj *obj, nu_val *key)
 {
-    if (obj == NULL || obj == NU_NONE) return NU_NONE;
-    if (key == NULL || key == NU_NONE) return NU_NONE;
+    if (obj == NU_NONE) return NU_NONE;
+    if (key == NU_NONE) return NU_NONE;
     nu_num *hash = nu_hash(key);
     size_t hashv = nu_to_size_t(hash);
     if (hashv == 0) return NU_NONE;
     rb_node *snode = rb_search(obj->data, hashv);
     if(snode != RB_NIL)
     {
-        return (nu_base*)snode->val;
+        return (nu_val*)snode->val;
     }
     return NU_NONE;
 }
+
+// --------------------------------------------------------------------------------------------------------------------------------

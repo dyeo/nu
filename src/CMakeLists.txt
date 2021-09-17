@@ -7,10 +7,10 @@ add_library(
 	nurbt.c
     nu.h
     nu.c
-    nubase.c
     nubool.c
     nunum.c
     nustr.c
+    nuarr.c
     nuobj.c
 )
 

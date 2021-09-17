@@ -24,14 +24,14 @@ extern "C" {
 
 #define NU_BASE_HEADER size_t type : NU_BASE_TYPE_BITS, refs : NU_BASE_REFS_BITS
 
-/**
- * Object Definitions
- */
+// --------------------------------------------------------------------------------------------------------------------------------
+// Object Definitions
+// --------------------------------------------------------------------------------------------------------------------------------
 
-typedef struct nu_base
+typedef struct nu_val
 {
     NU_BASE_HEADER;
-} nu_base;
+} nu_val;
 
 typedef struct nu_bool
 {
@@ -48,14 +48,20 @@ typedef struct nu_num
 typedef struct nu_str
 {
     NU_BASE_HEADER;
-    const char *data;
+    size_t len;
+    char *data;
 } nu_str;
+
+typedef struct nu_fn
+{
+    NU_BASE_HEADER;
+} nu_fn;
 
 typedef struct nu_arr
 {
     NU_BASE_HEADER;
-    size_t length;
-    nu_base *data;
+    size_t len;
+    nu_val *data;
 } nu_arr;
 
 typedef struct nu_obj
@@ -64,125 +70,152 @@ typedef struct nu_obj
     rb_tree *data;
 } nu_obj;
 
-/**
- * Function Pointer Definition
- */
+typedef struct nu_thr
+{
+    NU_BASE_HEADER;
+} nu_thr;
 
-#define NU_OP_DEF(name, ret, ...) typedef ret (*name)(__VA_ARGS__)
 
-#define NU_FPTR(ret, ...) ret (*)(__VA_ARGS__)
 
-NU_OP_DEF(nu_oper_t, nu_base *, nu_base *, nu_base *);
+// --------------------------------------------------------------------------------------------------------------------------------
+// Function Pointer Definitions
+// --------------------------------------------------------------------------------------------------------------------------------
 
-/**
- * Constants
- */
+NU_DEF_FPTR(nu_oper_t, nu_val *, nu_val *, nu_val *);
 
-const extern nu_base nu_none;
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Constants
+// nu.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+const extern nu_val nu_none;
 const extern nu_bool nu_true;
 const extern nu_bool nu_false;
 const extern nu_num nu_zero;
 const extern nu_num nu_one;
 const extern nu_str nu_empty;
 
-inline static nu_base *nu_oper_none(nu_base *_0, nu_base *_1) { return (nu_base *)(&nu_none); }
+inline static nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return (nu_val *)(&nu_none); }
 
 #define NU_NONE (&nu_none)
 
-/**
- * Initialization, Finalization, & Interpreter State
- * nu.c
- */
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Initialization, Finalization, & Interpreter State
+// nu.c
+// --------------------------------------------------------------------------------------------------------------------------------
 
 bool nu_initialize();
 bool nu_finalize();
 
 
-/**
- * Generic Object Methods
- * nubase.c
- */
+// --------------------------------------------------------------------------------------------------------------------------------
+// Memory Management
+// nu.c
+// --------------------------------------------------------------------------------------------------------------------------------
 
-nu_num *nu_hash(const nu_base *o);
-const char *nu_repr(const nu_base *o);
+inline static void nu_incref(nu_val *val) { if(val->refs == SIZE_MAX) { NU_ERR("nu_val has too many refs"); } val->refs++; }
+inline static void nu_decref(nu_val *val) { if(val->refs == 0) { NU_ERR("nu_val has no refs"); } val->refs--; }
+inline static bool nu_opt_incref(nu_val *val) { if(val != NU_NONE) { nu_incref(val); return true; } return false; }
+inline static bool nu_opt_decref(nu_val *val) { if(val != NU_NONE) { nu_decref(val); return true; } return false; }
 
-inline static void nu_incref(nu_base *o) { if(o->refs == SIZE_MAX) { NU_FATAL("nu_base has too many refs"); } o->refs++; }
-inline static void nu_decref(nu_base *o) { if(o->refs == 0) { NU_FATAL("nu_base has no refs"); } o->refs--; }
-inline static bool nu_opt_incref(nu_base *o) { if(o != NULL && o != NU_NONE) { nu_incref(o); return true; } return false; }
-inline static bool nu_opt_decref(nu_base *o) { if(o != NULL && o != NU_NONE) { nu_decref(o); return true; } return false; }
-
-inline static void nu_free(nu_base *o) { } // TODO: define later: free memory of any nu_base generically
-inline static bool nu_opt_free(nu_base *o) { if(o != NULL && o->refs > 0) { nu_free(o); return true; } return false; }
-
-nu_base *nu_lt(nu_base *l, nu_base *r);
-nu_base *nu_le(nu_base *l, nu_base *r);
-nu_base *nu_eq(nu_base *l, nu_base *r);
-nu_base *nu_ne(nu_base *l, nu_base *r);
-nu_base *nu_ge(nu_base *l, nu_base *r);
-nu_base *nu_gt(nu_base *l, nu_base *r);
-
-inline static bool nu_is_none(nu_base *o) { return o->type == NU_NONE_T; }
-inline static bool nu_is_bool(nu_base *o) { return o->type == NU_BOOL_T; }
-inline static bool nu_is_num(nu_base *o) { return o->type == NU_NUM_T; }
-inline static bool nu_is_str(nu_base *o) { return o->type == NU_STR_T; }
-inline static bool nu_is_fn(nu_base *o) { return o->type == NU_FN_T; }
-inline static bool nu_is_arr(nu_base *o) { return o->type == NU_ARR_T; }
-inline static bool nu_is_obj(nu_base *o) { return o->type == NU_OBJ_T; }
-inline static bool nu_is_thr(nu_base *o) { return o->type == NU_THR_T; }
-
-/**
- * Boolean Methods
- * nubool.c
- */
-
-nu_bool *nu_new_bool(bool v);
-
-bool nu_to_bool(nu_base *o);
+void nu_free(nu_val *val);
+inline static bool nu_opt_free(nu_val *val) { if(val->refs > 0) { nu_free(val); return true; } return false; }
 
 
-/**
- * Number Methods
- * nunum.c
- */
+// --------------------------------------------------------------------------------------------------------------------------------
+// Generic Object Methods
+// nu.c
+// --------------------------------------------------------------------------------------------------------------------------------
 
-nu_num *nu_new_num(num_t v);
+nu_num *nu_hash(const nu_val *val);
+const char *nu_repr(const nu_val *val);
 
-uint8_t nu_to_uint8(nu_base *v);
-int8_t nu_to_int8(nu_base *v);
-uint16_t nu_to_uint16(nu_base *v);
-int16_t nu_to_int16(nu_base *v);
-uint32_t nu_to_uint32(nu_base *v);
-int32_t nu_to_int32(nu_base *v);
-uint64_t nu_to_uint64(nu_base *v);
-int64_t nu_to_int64(nu_base *v);
-size_t nu_to_size_t(nu_base *v);
-float nu_to_float(nu_base * v);
-double nu_to_double(nu_base * v);
+nu_val *nu_lt(nu_val *lhs, nu_val *rhs);
+nu_val *nu_le(nu_val *lhs, nu_val *rhs);
+nu_val *nu_eq(nu_val *lhs, nu_val *rhs);
+nu_val *nu_ne(nu_val *lhs, nu_val *rhs);
+nu_val *nu_ge(nu_val *lhs, nu_val *rhs);
+nu_val *nu_gt(nu_val *lhs, nu_val *rhs);
 
-nu_base *nu_add(nu_base *l, nu_base *r);
-nu_base *nu_sub(nu_base *l, nu_base *r);
-nu_base *nu_mul(nu_base *l, nu_base *r);
-nu_base *nu_div(nu_base *l, nu_base *r);
-nu_base *nu_mod(nu_base *l, nu_base *r);
+inline static bool nu_is_none(nu_val *val) { return val->type == NU_NONE_T; }
+inline static bool nu_is_bool(nu_val *val) { return val->type == NU_BOOL_T; }
+inline static bool nu_is_num(nu_val *val) { return val->type == NU_NUM_T; }
+inline static bool nu_is_str(nu_val *val) { return val->type == NU_STR_T; }
+inline static bool nu_is_fn(nu_val *val) { return val->type == NU_FN_T; }
+inline static bool nu_is_arr(nu_val *val) { return val->type == NU_ARR_T; }
+inline static bool nu_is_obj(nu_val *val) { return val->type == NU_OBJ_T; }
+inline static bool nu_is_thr(nu_val *val) { return val->type == NU_THR_T; }
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Boolean Methods
+// nubool.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+nu_bool *nu_new_bool(bool data);
+void nu_free_bool(nu_bool *bol);
+
+bool nu_to_bool(nu_val *val);
 
 
-/**
- * String Methods
- * nustr.c
- */
+// --------------------------------------------------------------------------------------------------------------------------------
+// Number Methods
+// nunum.c
+// --------------------------------------------------------------------------------------------------------------------------------
 
-nu_str *nu_new_str(const char *v);
+nu_num *nu_new_num(num_t data);
+void nu_free_num(nu_num *num);
+
+uint8_t nu_to_uint8(nu_val *val);
+int8_t nu_to_int8(nu_val *val);
+uint16_t nu_to_uint16(nu_val *val);
+int16_t nu_to_int16(nu_val *val);
+uint32_t nu_to_uint32(nu_val *val);
+int32_t nu_to_int32(nu_val *val);
+uint64_t nu_to_uint64(nu_val *val);
+int64_t nu_to_int64(nu_val *val);
+size_t nu_to_size_t(nu_val *val);
+float nu_to_float(nu_val *val);
+double nu_to_double(nu_val *val);
+
+nu_val *nu_add(nu_val *lhs, nu_val *rhs);
+nu_val *nu_sub(nu_val *lhs, nu_val *rhs);
+nu_val *nu_mul(nu_val *lhs, nu_val *rhs);
+nu_val *nu_div(nu_val *lhs, nu_val *rhs);
+nu_val *nu_mod(nu_val *lhs, nu_val *rhs);
 
 
-/**
- * Object Methods
- * nuobj.c
- */
+// --------------------------------------------------------------------------------------------------------------------------------
+// String Methods
+// nustr.c
+// --------------------------------------------------------------------------------------------------------------------------------
 
-nu_obj *nu_new_obj(nu_obj **keys, nu_obj **vals, size_t len);
+nu_str *nu_new_str(const char *data);
+void nu_free_str(nu_str *str);
 
-void nu_set_val(nu_obj *obj, nu_base *key, nu_base *val);
-nu_base *nu_get_val(nu_obj *obj, nu_base *key);
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Array Methods
+// nuarr.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+nu_arr *nu_new_arr(nu_val **vals, size_t len);
+void nu_free_arr(nu_arr *arr);
+
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Object Methods
+// nuobj.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+nu_obj *nu_new_obj(nu_val **keys, nu_val **vals, size_t len);
+void nu_free_obj(nu_obj *obj);
+
+void nu_set_val(nu_obj *obj, nu_val *key, nu_val *val);
+nu_val *nu_get_val(nu_obj *obj, nu_val *key);
+
+// --------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef __cplusplus
 }

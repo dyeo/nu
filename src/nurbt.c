@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-const rb_node rb_nil = { black, &rb_nil, &rb_nil, &rb_nil, 0ul, NULL };
+const rb_node rb_nil = {black, &rb_nil, &rb_nil, &rb_nil, 0ul, NULL};
 
 rb_tree *rb_new_tree()
 {
@@ -15,7 +15,18 @@ rb_tree *rb_new_tree()
 
 void rb_free_tree(rb_tree *tree)
 {
-	rb_free_node(tree->root);
+	if (tree->root != RB_NIL)
+	{
+		rb_free_node(tree->root);
+	}
+}
+
+void rb_free_tree_iter(rb_tree *tree, rb_traverse_fptr fptr)
+{
+	if (tree->root != RB_NIL)
+	{
+		rb_free_node_iter(tree->root, fptr);
+	}
 }
 
 rb_node *rb_new_node(size_t key, void *val)
@@ -33,9 +44,24 @@ rb_node *rb_new_node(size_t key, void *val)
 
 void rb_free_node(rb_node *node)
 {
-	if(node == RB_NIL) return;
+	if (node == RB_NIL)
+	{
+		return;
+	}
 	rb_free_node(node->left);
 	rb_free_node(node->right);
+	free(node);
+}
+
+void rb_free_node_iter(rb_node *node, rb_traverse_fptr fptr)
+{
+	if (node == RB_NIL)
+	{
+		return;
+	}
+	rb_free_node(node->left);
+	rb_free_node(node->right);
+	fptr(node);
 	free(node);
 }
 
@@ -252,7 +278,8 @@ void rb_insert(rb_tree *t, rb_node *z)
 
 rb_node *rb_delete(rb_tree *t, rb_node *z)
 {
-	rb_node *x; rb_node *y;
+	rb_node *x;
+	rb_node *y;
 	if (z->left == &rb_nil || z->right == &rb_nil)
 	{
 		y = z;
