@@ -11,15 +11,15 @@ void rb_print(rb_node *curr)
 
 int main(int argc, char **argv)
 {
-    nu_num *n = nu_new_num(128);
-    nu_str *s = nu_new_str("hello world!");
+    nu_num *n = nu_num_new(128);
+    nu_str *s = nu_str_new("hello world!");
     printf("128 : %llu\n", nu_to_size_t(nu_hash(n)));
     printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
 
-    nu_obj *o = nu_new_obj(NULL, NULL, 0);
+    nu_obj *o = nu_obj_new(NULL, NULL, 0);
     
-    nu_set_val(o, n, s);
-    nu_val *t = nu_get_val(o, n);
+    nu_obj_set_val(o, n, s);
+    nu_val *t = nu_obj_get_val(o, n);
     const char *r = nu_repr(t);
     printf("%s\n", r);
     free(r);
@@ -29,9 +29,9 @@ int main(int argc, char **argv)
     printf("%i", o == &(o->base));
 
 
-    NU_ASSERT(false, "this failed successfully");
+    NU_ASSERT(false, "failed successfully");
 
-    //nu_val *o = nu_new_num(42);
+    //nu_val *o = nu_num_new(42);
     //printf("%s\n\n", nu_repr(o));
     //
     //rb_tree *a = rb_new_tree();

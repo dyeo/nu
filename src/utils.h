@@ -44,7 +44,7 @@ typedef float num_t;
 #define NU_LOG(msg) { fprintf(stdout, "LOG: %s\n", msg); }
 #define NU_ERR(msg) {  fprintf(stderr, "ERR: %s\n", msg); exit(1); }
 #ifndef NDEBUG
-#define NU_ASSERT(exp, msg) { if (!exp) { fprintf(stderr, "ERR: " __FILE__ ":" xstr(__LINE__) ": ASSERT: " xstr(#exp) " is false: %s\n", msg); exit(1); } }
+#define NU_ASSERT(exp, msg) { if (!(exp)) { fprintf(stderr, "ERR: " __FILE__ ":" xstr(__LINE__) ": ASSERT: " xstr(#exp) " is false: %s\n", msg); exit(1); } }
 #else
 #define NU_ASSERT(exp, msg) ((void)0)
 #endif

@@ -51,6 +51,20 @@ inline static size_t utfclen(const char *str)
     return i;
 }
 
+inline static void utfdlen(const char *str, size_t *blen, size_t *clen)
+{
+    *blen = 0;
+    *clen = 0;
+    const char *c = str;
+    while (*c != 0)
+    {
+        size_t cp = cplen(*c);
+        (*blen)+=cp;
+        (*clen)+=1;
+        c += cp;
+    }
+}
+
 inline static size_t utfcpy(char *dst, const char *src, size_t n)
 {
     return 0;

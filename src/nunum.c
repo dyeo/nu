@@ -3,7 +3,7 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_num *nu_new_num(num_t v)
+nu_num *nu_num_new(num_t v)
 {
 	nu_num *r = NU_NEW(nu_num);
     NU_ASSERT(r != NULL, "heap allocation error");
@@ -13,7 +13,7 @@ nu_num *nu_new_num(num_t v)
 	return r;
 }
 
-void nu_free_num(nu_num *o)
+void nu_num_free(nu_num *o)
 {
 	o->type = NU_NONE_T;
 	o->refs = 0;
@@ -94,12 +94,12 @@ double nu_to_double(nu_val * v) { return (double)_nu_to_num_t_ptr[v->type](v); }
 
 nu_val *_nu_bool_add(nu_bool *l, nu_bool *r)
 {
-	return nu_new_bool((l->data + r->data) != 0);
+	return nu_bool_new((l->data + r->data) != 0);
 }
 
 nu_val *_nu_num_add(nu_num *l, nu_num *r)
 {
-	return nu_new_num(l->data + r->data);
+	return nu_num_new(l->data + r->data);
 }
 
 nu_val *_nu_str_add(nu_val *l, nu_val *r)
@@ -136,12 +136,12 @@ nu_val *nu_add(nu_val *l, nu_val *r)
 
 nu_val *_nu_bool_sub(nu_bool *l, nu_bool *r)
 {
-	return nu_new_bool(l->data - r->data);
+	return nu_bool_new(l->data - r->data);
 }
 
 nu_val *_nu_num_sub(nu_num *l, nu_num *r)
 {
-	return nu_new_num(l->data - r->data);
+	return nu_num_new(l->data - r->data);
 }
 
 nu_val *_nu_str_sub(nu_val *l, nu_val *r)
@@ -173,12 +173,12 @@ nu_val *nu_sub(nu_val *l, nu_val *r)
 
 nu_val *_nu_bool_mul(nu_bool *l, nu_bool *r)
 {
-	return nu_new_bool(l->data * r->data);
+	return nu_bool_new(l->data * r->data);
 }
 
 nu_val *_nu_num_mul(nu_num *l, nu_num *r)
 {
-	return nu_new_num(l->data * r->data);
+	return nu_num_new(l->data * r->data);
 }
 
 nu_val *_nu_str_mul(nu_val *l, nu_val *r)
@@ -215,12 +215,12 @@ nu_val *_nu_none_div(nu_val *l, nu_val *r)
 
 nu_val *_nu_bool_div(nu_bool *l, nu_bool *r)
 {
-	return nu_new_bool(l->data / r->data);
+	return nu_bool_new(l->data / r->data);
 }
 
 nu_val *_nu_num_div(nu_num *l, nu_num *r)
 {
-	return nu_new_num(l->data / r->data);
+	return nu_num_new(l->data / r->data);
 }
 
 const nu_oper_t _nu_div_ptr[8] = {
@@ -247,12 +247,12 @@ nu_val *nu_div(nu_val *l, nu_val *r)
 
 nu_val *_nu_bool_mod(nu_bool *l, nu_bool *r)
 {
-	return nu_new_bool(l->data % r->data);
+	return nu_bool_new(l->data % r->data);
 }
 
 nu_val *_nu_num_mod(nu_num *l, nu_num *r)
 {
-	return nu_new_num(fmod(l->data, r->data));
+	return nu_num_new(fmod(l->data, r->data));
 }
 
 nu_oper_t _nu_mod_ptr[8] = {

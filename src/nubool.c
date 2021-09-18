@@ -3,7 +3,7 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_bool *nu_new_bool(bool v)
+nu_bool *nu_bool_new(bool v)
 {
 	nu_bool *r = NU_NEW(nu_bool);
 	assert(r != NULL);
@@ -13,7 +13,7 @@ nu_bool *nu_new_bool(bool v)
 	return r;
 }
 
-void nu_free_bool(nu_bool *o)
+void nu_bool_free(nu_bool *o)
 {
 	o->type = NU_NONE_T;
 	o->refs = 0;

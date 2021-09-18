@@ -29,12 +29,12 @@ void _nu_none_free(nu_val *o) {}
 
 nu_free_fptr _nu_free_ptr[8] = {
 	(nu_free_fptr)_nu_none_free,
-	(nu_free_fptr)nu_free_bool,
-	(nu_free_fptr)nu_free_num,
-	(nu_free_fptr)nu_free_str,
+	(nu_free_fptr)nu_bool_free,
+	(nu_free_fptr)nu_num_free,
+	(nu_free_fptr)nu_str_free,
 	(nu_free_fptr)_nu_none_free,
 	(nu_free_fptr)_nu_none_free,
-	(nu_free_fptr)nu_free_obj,
+	(nu_free_fptr)nu_obj_free,
 	(nu_free_fptr)_nu_none_free
 };
 
@@ -113,15 +113,15 @@ nu_num *_nu_none_hash(nu_val *o)
 }
 nu_num *_nu_bool_hash(nu_bool *o)
 {
-    return nu_new_num(o->data != 0);
+    return nu_num_new(o->data != 0);
 }
 nu_num *_nu_num_hash(nu_num *o)
 {
-    return nu_new_num(o->data);
+    return nu_num_new(o->data);
 }
 nu_num *_nu_str_hash(nu_str *o)
 {
-    return nu_new_num((num_t)hashN(o->data));
+    return nu_num_new((num_t)hashN(o->data));
 }
 nu_num *_nu_fn_hash(nu_val *o)
 {
@@ -129,11 +129,11 @@ nu_num *_nu_fn_hash(nu_val *o)
 }
 nu_num *_nu_arr_hash(nu_val *o)
 {
-    return nu_new_num(0); // TODO: hash all array elems
+    return nu_num_new(0); // TODO: hash all array elems
 }
 nu_num *_nu_obj_hash(nu_val *o)
 {
-    return nu_new_num(0); // TODO: custom hash function lookup 
+    return nu_num_new(0); // TODO: custom hash function lookup 
 }
 nu_num *_nu_thr_hash(nu_val *o)
 {
@@ -168,7 +168,7 @@ nu_val *_nu_bool_lt(nu_bool *l, nu_bool *r)
 }
 nu_val *_nu_num_lt(nu_num *l, nu_num *r)
 {
-    return nu_new_bool(l->data < r->data);
+    return nu_bool_new(l->data < r->data);
 }
 nu_val *_nu_str_lt(nu_val *l, nu_val *r)
 {
@@ -219,7 +219,7 @@ nu_val *_nu_bool_le(nu_bool *l, nu_bool *r)
 }
 nu_val *_nu_num_le(nu_num *l, nu_num *r)
 {
-    return nu_new_bool(l->data <= r->data);
+    return nu_bool_new(l->data <= r->data);
 }
 nu_val *_nu_str_le(nu_val *l, nu_val *r)
 {
@@ -266,11 +266,11 @@ nu_val *nu_le(nu_val *l, nu_val *r)
 
 nu_val *_nu_bool_eq(nu_bool *l, nu_bool *r)
 {
-    return nu_new_bool(l->data == r->data);
+    return nu_bool_new(l->data == r->data);
 }
 nu_val *_nu_num_eq(nu_num *l, nu_num *r)
 {
-    return nu_new_bool(l->data == r->data);
+    return nu_bool_new(l->data == r->data);
 }
 nu_val *_nu_str_eq(nu_val *l, nu_val *r)
 {
@@ -317,11 +317,11 @@ nu_val *nu_eq(nu_val *l, nu_val *r)
 
 nu_val *_nu_bool_ne(nu_bool *l, nu_bool *r)
 {
-    return nu_new_bool(l->data != r->data);
+    return nu_bool_new(l->data != r->data);
 }
 nu_val *_nu_num_ne(nu_num *l, nu_num *r)
 {
-    return nu_new_bool(l->data != r->data);
+    return nu_bool_new(l->data != r->data);
 }
 nu_val *_nu_str_ne(nu_val *l, nu_val *r)
 {
@@ -372,7 +372,7 @@ nu_val *_nu_bool_ge(nu_bool *l, nu_bool *r)
 }
 nu_val *_nu_num_ge(nu_num *l, nu_num *r)
 {
-    return nu_new_bool(l->data >= r->data);
+    return nu_bool_new(l->data >= r->data);
 }
 nu_val *_nu_str_ge(nu_val *l, nu_val *r)
 {
@@ -423,7 +423,7 @@ nu_val *_nu_bool_gt(nu_bool *l, nu_bool *r)
 }
 nu_val *_nu_num_gt(nu_num *l, nu_num *r)
 {
-    return nu_new_bool(l->data > r->data);
+    return nu_bool_new(l->data > r->data);
 }
 nu_val *_nu_str_gt(nu_val *l, nu_val *r)
 {
