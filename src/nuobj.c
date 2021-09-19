@@ -83,7 +83,7 @@ nu_val *nu_obj_get_val(nu_obj *obj, nu_val *key)
     return NU_NONE;
 }
 
-bool nu_obj_del_val(nu_obj *obj, nu_val *key)
+nu_val *nu_obj_del_val(nu_obj *obj, nu_val *key)
 {
     if (obj == NU_NONE) return false;
     if (key == NU_NONE) return false;
@@ -96,9 +96,9 @@ bool nu_obj_del_val(nu_obj *obj, nu_val *key)
         nu_opt_decref(val);
         snode = rb_delete(obj->data, snode);
         rb_free_node(snode);
-        return true;
+        return val;
     }
-    return false;
+    return NU_NONE;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

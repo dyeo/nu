@@ -33,11 +33,13 @@ typedef float num_t;
 #define NU_NEW(T) (T*)malloc(sizeof(T))
 #define NU_ANEW(T, C) (T*)malloc(sizeof(T)*(C))
 
+#define NU_COPY(T, D, S, C) (T*)memcpy(D, S, sizeof(T)*(C))
+
 // --------------------------------------------------------------------------------------------------------------------------------
 
-#define NU_DEF_FPTR(name, ret, ...) typedef ret (*name)(__VA_ARGS__)
+#define NU_DEF_FPTR(name, ret, ...) typedef ret (*name)( __VA_ARGS__ )
 
-#define NU_FPTR(ret, ...) ret (*)(__VA_ARGS__)
+#define NU_FPTR(ret, ...) ret (*)( __VA_ARGS__ )
 
 // --------------------------------------------------------------------------------------------------------------------------------
 

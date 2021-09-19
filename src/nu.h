@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+// --------------------------------------------------------------------------------------------------------------------------------
+
 #include "utils.h"
 #include "utf8.h"
 #include "nurbt.h"
@@ -12,6 +14,8 @@ extern "C" {
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+// --------------------------------------------------------------------------------------------------------------------------------
 
 #define NU_NONE_T 0
 #define NU_BOOL_T 1
@@ -21,6 +25,7 @@ extern "C" {
 #define NU_ARR_T  5
 #define NU_OBJ_T  6
 #define NU_THR_T  7
+
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Object Definitions
@@ -133,13 +138,16 @@ inline static bool nu_opt_free(nu_val *val) { if(val->refs > 0) { nu_free(val); 
 // nu.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
+nu_num *nu_len(const nu_val *val);
+nu_num *nu_cap(const nu_val *val);
+
 nu_num *nu_hash(const nu_val *val);
 const char *nu_repr(const nu_val *val);
 
 bool nu_set_val(nu_val *cnt, nu_val *key, nu_val *val);
 nu_val *nu_get_val(nu_val *cnt, nu_val *key);
 bool nu_add_val(nu_val *cnt, nu_val *key, nu_val *val);
-bool nu_del_val(nu_val *cnt, nu_val *key);
+nu_val *nu_del_val(nu_val *cnt, nu_val *key);
 
 nu_val *nu_lt(nu_val *lhs, nu_val *rhs);
 nu_val *nu_le(nu_val *lhs, nu_val *rhs);
@@ -162,6 +170,7 @@ inline static bool nu_is_fn(nu_val *val) { return val->type == NU_FN_T; }
 inline static bool nu_is_arr(nu_val *val) { return val->type == NU_ARR_T; }
 inline static bool nu_is_obj(nu_val *val) { return val->type == NU_OBJ_T; }
 inline static bool nu_is_thr(nu_val *val) { return val->type == NU_THR_T; }
+
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Boolean Methods
@@ -212,10 +221,23 @@ void nu_str_free(nu_str *str);
 nu_arr *nu_arr_new(size_t cap);
 void nu_arr_free(nu_arr *arr);
 
-bool nu_arr_set_val(nu_arr *arr, nu_val *idx, nu_val *val);
-nu_val *nu_arr_get_val(nu_arr *arr, nu_val *idx);
-bool nu_arr_add_val(nu_arr *arr, nu_val *idx, nu_val *val);
-bool nu_arr_del_val(nu_arr *arr, nu_val *idx);
+inline static nu_num *nu_arr_len(nu_arr *arr) { return nu_num_new((num_t)arr->len); }
+inline static nu_num *nu_arr_cap(nu_arr *arr) { return nu_num_new((num_t)arr->cap); }
+
+bool nu_arr_set_val(nu_arr *arr, nu_num *idx, nu_val *val);
+nu_val *nu_arr_get_val(nu_arr *arr, nu_num *idx);
+bool nu_arr_add_val(nu_arr *arr, nu_num *idx, nu_val *val);
+nu_val *nu_arr_del_val(nu_arr *arr, nu_num *idx);
+
+void nu_arr_push_val(nu_arr *arr, nu_val *val);
+nu_val *nu_arr_pop_val(nu_arr *arr);
+void nu_arr_enqueue_val(nu_arr *arr, nu_val *val);
+nu_val *nu_arr_dequeue_val(nu_arr *arr);
+
+bool nu_arr_set_val_i(nu_arr *arr, size_t i, nu_val *val);
+nu_val *nu_arr_get_val_i(nu_arr *arr, size_t i);
+bool nu_arr_add_val_i(nu_arr *arr, size_t i, nu_val *val);
+nu_val *nu_arr_del_val_i(nu_arr *arr, size_t i);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -226,10 +248,13 @@ bool nu_arr_del_val(nu_arr *arr, nu_val *idx);
 nu_obj *nu_obj_new();
 void nu_obj_free(nu_obj *obj);
 
+inline static nu_num *nu_obj_len(nu_obj *obj) { return nu_num_new((num_t)obj->len); }
+inline static nu_num *nu_obj_cap(nu_obj *arr) { return nu_num_new((num_t)SIZE_MAX); }
+
 bool nu_obj_set_val(nu_obj *obj, nu_val *key, nu_val *val);
 nu_val *nu_obj_get_val(nu_obj *obj, nu_val *key);
 inline static bool nu_obj_add_val(nu_obj *obj, nu_val *key, nu_val *val) { return nu_obj_set_val(obj, key, val); }
-bool nu_obj_del_val(nu_obj *obj, nu_val *key);
+nu_val *nu_obj_del_val(nu_obj *obj, nu_val *key);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------

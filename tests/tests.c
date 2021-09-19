@@ -11,6 +11,7 @@ void rb_print(rb_node *curr)
 
 int main(int argc, char **argv)
 {
+    printf("%lu\n", sizeof(nu_val *));
     nu_num *n = nu_num_new(128);
     nu_str *s = nu_str_new("hello world!");
     printf("128 : %llu\n", nu_to_size_t(nu_hash(n)));
@@ -26,8 +27,27 @@ int main(int argc, char **argv)
 
     printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
     nu_free(s);
-    printf("%i", o == &(o->base));
 
+    size_t SIZE = 100;
+    printf("max: %lu\n", SIZE);
+    nu_arr *arr = nu_arr_new(SIZE);
+    for(int i = 0; i < SIZE; ++i)
+    {
+        nu_num *val = nu_num_new((num_t)i);
+        nu_arr_push_val(arr, val);
+    }
+    printf("len: %lu\n", nu_to_size_t(nu_len(arr)));
+    printf("cap: %lu\n", nu_to_size_t(nu_cap(arr)));
+    if(nu_arr_del_val_i(arr, 53) != NU_NONE)
+    {
+        SIZE--;
+    }
+    printf("AAAA\n");
+    for(int i = 0; i < SIZE; ++i)
+    {
+        nu_val *val = nu_arr_get_val_i(arr, i);
+        printf("val: %lu\n", nu_to_size_t(val));
+    }
 
     NU_ASSERT(false, "failed successfully");
 
