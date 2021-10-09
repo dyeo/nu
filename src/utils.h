@@ -30,10 +30,11 @@ typedef float num_t;
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define NU_NEW(T) (T*)malloc(sizeof(T))
-#define NU_ANEW(T, C) (T*)malloc(sizeof(T)*(C))
+#define nu_malloc(T) (T*)malloc(sizeof(T))
+#define nu_calloc(T, C) (T*)calloc(C, sizeof(T))
+#define nu_ralloc(T, P, C) (T*)realloc(P, sizeof(T)*(C))
 
-#define NU_COPY(T, D, S, C) (T*)memcpy(D, S, sizeof(T)*(C))
+#define nu_copy(T, D, S, C) (T*)memcpy(D, S, sizeof(T)*(C))
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
@@ -105,50 +106,54 @@ inline static size_t rorN(size_t x, size_t bits)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
+const static uint32_t _FNV_PRIME_32 = 16777619;
+const static uint32_t _FNV_OFFSET_32 = 2166136261;
+
 /// <summary>
-/// Returns a unique hash of a given string.
+/// Returns a unique hash of a given sequence of bytes. (FNV-1a)
 /// </summary>
 /// <param name="str">The string to hash.</param>
-inline static uint32_t hash32(const char *str)
+inline static uint32_t hash32(const uint8_t *b, uint32_t n)
 {
-    if (str == NULL || *str == '\0')
+    if (b == NULL || *b == '\0')
         return 0;
-    size_t h = 3323198485ul;
-    for (;*str;++str)
+    uint32_t h = _FNV_OFFSET_32;
+    uint32_t i;
+    for (i = 0; i < n; ++i, ++b)
     {
-        h ^= *str;
-        h *= 2147483647ul;
-        h ^= rol32(h, 15);
-        h *= 1540483477ul;
-        h ^= ror32(h, 15);
+        h = (h ^ *b) * _FNV_PRIME_32;
     }
     return h;
 }
 
+const static uint64_t _FNV_PRIME_64 = 1099511628211;
+const static uint64_t _FNV_OFFSET_64 = 14695981039346656037;
+
 /// <summary>
-/// Returns a unique hash of a given string.
+/// Returns a unique hash of a given sequence of bytes. (FNV-1a)
 /// </summary>
 /// <param name="str">The string to hash.</param>
-inline static uint64_t hash64(const char *str)
+inline static uint64_t hash64(const uint8_t *b, uint64_t n)
 {
-    if (str == NULL || *str == '\0')
+    if (b == NULL || *b == '\0')
         return 0;
-    size_t h = 18446744073709551557ull;
-    for (;*str;++str)
+    uint64_t h = _FNV_OFFSET_64;
+    uint64_t i;
+    for (i = 0; i < n; ++i, ++b)
     {
-        h ^= *str;
-        h *= 6616326155283851693ull;
-        h ^= rol64(h, 47);
-        h *= 525201411107845655ull;
-        h ^= ror64(h, 47);
+        h = (h ^ *b) * _FNV_PRIME_64;
     }
     return h;
 }
 
 #ifdef NU_64_BIT
-#define hashN(str) hash64(str)
+#define hashN(b, n) hash64(b, n)
+#define _FNV_PRIME_N _FNV_PRIME_64
+#define _FNV_OFFSET_N _FNV_OFFSET_64
 #else
-#define hashN(str) hash32(str)
+#define hashN(b, n) hash32(b, n)
+#define _FNV_PRIME_N _FNV_PRIME_32
+#define _FNV_OFFSET_N _FNV_OFFSET_32
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------------------

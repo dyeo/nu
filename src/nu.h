@@ -180,7 +180,8 @@ inline static bool nu_is_thr(nu_val *val) { return val->type == NU_THR_T; }
 nu_bool *nu_bool_new(bool data);
 void nu_bool_free(nu_bool *bol);
 
-bool nu_to_bool(nu_val *val);
+bool nu_to_bool_c(nu_val *val);
+nu_bool *nu_to_bool(nu_val *val);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -203,6 +204,8 @@ size_t nu_to_size_t(nu_val *val);
 float nu_to_float(nu_val *val);
 double nu_to_double(nu_val *val);
 
+nu_num *nu_to_num(nu_val *val);
+
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // String Methods
@@ -212,6 +215,7 @@ double nu_to_double(nu_val *val);
 nu_str *nu_str_new(const char *data);
 void nu_str_free(nu_str *str);
 
+nu_str *nu_str_get_val(nu_str *str, nu_num *key);
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Array Methods

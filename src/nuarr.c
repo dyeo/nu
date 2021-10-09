@@ -4,14 +4,14 @@
 
 nu_arr *nu_arr_new(size_t c)
 {
-    nu_arr *r = NU_NEW(nu_arr);
+    nu_arr *r = nu_malloc(nu_arr);
     NU_ASSERT(r != NULL, "heap allocation error");
     r->type = NU_ARR_T;
     r->len = 0;
     if (c == 0)
         c = 16;
     r->cap = c;
-    r->data = NU_ANEW(nu_val *, r->cap);
+    r->data = nu_calloc(nu_val *, r->cap);
     return r;
 }
 
@@ -58,16 +58,16 @@ bool nu_arr_add_val_i(nu_arr *a, size_t i, nu_val *v)
     if (a->len == a->cap)
     {
         a->cap *= 2;
-        nu_val **tmp = NU_ANEW(nu_val *, a->cap);
+        nu_val **tmp = nu_calloc(nu_val *, a->cap);
         NU_ASSERT(tmp != NULL, "heap allocation error");
         if (i > 0)
         {
-            NU_COPY(nu_val *, tmp, a->data, i);
+            nu_copy(nu_val *, tmp, a->data, i);
         }
         tmp[i] = v;
         if (i < a->len)
         {
-            NU_COPY(nu_val *, tmp + i + 1, a->data + i, a->len - i);
+            nu_copy(nu_val *, tmp + i + 1, a->data + i, a->len - i);
         }
         free(a->data);
         a->data = tmp;

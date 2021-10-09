@@ -2,20 +2,13 @@
 
 #include <assert.h>
 
-nu_obj *nu_obj_new(nu_val **keys, nu_val **vals, size_t len)
+nu_obj *nu_obj_new()
 {
-    nu_obj *r = NU_NEW(nu_obj);
+    nu_obj *r = nu_malloc(nu_obj);
     NU_ASSERT(r != NULL, "heap allocation error");
     r->type = NU_OBJ_T;
     r->len = 0;
     r->data = rb_new_tree();
-    if (keys != NULL && vals != NULL && len > 0)
-    {
-        for (size_t i = 0; i < len; ++i)
-        {
-            nu_obj_set_val(r, keys[i], vals[i]);
-        }
-    }
     return r;
 }
 
@@ -37,8 +30,7 @@ void nu_obj_free(nu_obj *o)
 
 bool nu_obj_set_val(nu_obj *obj, nu_val *key, nu_val *val)
 {
-    if (obj == NU_NONE) return false;
-    if (key == NU_NONE) return false;
+    if (obj == NU_NONE || key == NU_NONE) return false;
     size_t hashv = nu_to_size_t(nu_hash(key));
     if (hashv == 0) return false;
     rb_node *snode = rb_search(obj->data, hashv);
@@ -71,8 +63,7 @@ bool nu_obj_set_val(nu_obj *obj, nu_val *key, nu_val *val)
 
 nu_val *nu_obj_get_val(nu_obj *obj, nu_val *key)
 {
-    if (obj == NU_NONE) return NU_NONE;
-    if (key == NU_NONE) return NU_NONE;
+    if (obj == NU_NONE || key == NU_NONE) return NU_NONE;
     size_t hashv = nu_to_size_t(nu_hash(key));
     if (hashv == 0) return NU_NONE;
     rb_node *snode = rb_search(obj->data, hashv);
@@ -85,8 +76,7 @@ nu_val *nu_obj_get_val(nu_obj *obj, nu_val *key)
 
 nu_val *nu_obj_del_val(nu_obj *obj, nu_val *key)
 {
-    if (obj == NU_NONE) return false;
-    if (key == NU_NONE) return false;
+    if (obj == NU_NONE || key == NU_NONE) return false;
     size_t hashv = nu_to_size_t(nu_hash(key));
     if (hashv == 0) return false;
     rb_node *snode = rb_search(obj->data, hashv);

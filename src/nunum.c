@@ -5,7 +5,7 @@
 
 nu_num *nu_num_new(num_t v)
 {
-	nu_num *r = NU_NEW(nu_num);
+	nu_num *r = nu_malloc(nu_num);
     NU_ASSERT(r != NULL, "heap allocation error");
 	r->type = NU_NUM_T;
 	r->refs = 0u;
@@ -89,5 +89,7 @@ int64_t nu_to_int64(nu_val *v) { return (int64_t)_nu_to_num_t_ptr[v->type](v); }
 size_t nu_to_size_t(nu_val *v) { return (size_t)_nu_to_num_t_ptr[v->type](v); }
 float nu_to_float(nu_val * v) { return (float)_nu_to_num_t_ptr[v->type](v); }
 double nu_to_double(nu_val * v) { return (double)_nu_to_num_t_ptr[v->type](v); }
+
+nu_num *nu_to_num(nu_val *v) { return nu_num_new(nu_to_double(v)); }
 
 // --------------------------------------------------------------------------------------------------------------------------------

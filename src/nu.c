@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <float.h>
 
+#include "nurbt.h"
+
 // --------------------------------------------------------------------------------------------------------------------------------
 
 const nu_val nu_none = {NU_NONE_T, 0ul};
@@ -112,21 +114,32 @@ nu_num *_nu_num_hash(nu_num *o)
 }
 nu_num *_nu_str_hash(nu_str *o)
 {
-    return nu_num_new((num_t)hashN(o->data));
+    return nu_num_new((num_t)hashN(o->data, o->cap));
 }
-nu_num *_nu_fn_hash(nu_val *o)
+nu_num *_nu_fn_hash(nu_fn *o)
 {
     return NU_NONE; // hashable???
 }
-nu_num *_nu_arr_hash(nu_val *o)
+nu_num *_nu_arr_hash(nu_arr *o)
 {
-    return nu_num_new(0); // TODO: hash all array elems
+    size_t h = _FNV_OFFSET_N;
+    size_t i;
+    for(i = 0; i < o->len; ++i)
+    {
+        h = (h ^ nu_to_size_t(nu_hash(o->data[i]))) * _FNV_PRIME_N;
+    }
+    return nu_num_new((double)h); // TODO: hash all array elems
 }
-nu_num *_nu_obj_hash(nu_val *o)
+nu_num *_nu_obj_hash(nu_obj *o)
 {
-    return nu_num_new(0); // TODO: custom hash function lookup
+    nu_val *hfn = nu_obj_get_val(o, nu_str_new("$hash"));
+    if(hfn != NU_NONE)
+    {
+        return (nu_num *)nu_fn_call(hfn, o);
+    }
+    return NU_NONE;
 }
-nu_num *_nu_thr_hash(nu_val *o)
+nu_num *_nu_thr_hash(nu_thr *o)
 {
     return NU_NONE; // hashable???
 }
@@ -158,25 +171,25 @@ const char *_nu_none_repr(const nu_val *o)
 {
     const char *t = "none";
     size_t n = strlen(t);
-    return strcpy(NU_ANEW(const char, n), t);
+    return strcpy(nu_calloc(const char, n), t);
 }
 const char *_nu_bool_repr(const nu_bool *o)
 {
     const char *t = o->data ? "true" : "false";
     size_t n = strlen(t);
-    return strcpy(NU_ANEW(const char, n), t);
+    return strcpy(nu_calloc(const char, n), t);
 }
 const char *_nu_num_repr(const nu_num *o)
 {
     const int size = 3 + DBL_MANT_DIG - DBL_MIN_EXP;
-    const char *buf = NU_ANEW(const char, size);
+    const char *buf = nu_calloc(const char, size);
     snprintf(buf, size, "%f", o->data);
     return buf;
 }
 const char *_nu_str_repr(const nu_str *o)
 {
     size_t n = strlen(o->data);
-    return strcpy(NU_ANEW(const char, n), o->data);
+    return strcpy(nu_calloc(const char, n), o->data);
 }
 const char *_nu_fn_repr(const nu_fn *o)
 {
@@ -786,3 +799,5 @@ nu_val *nu_mod(nu_val *l, nu_val *r)
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
+
+
