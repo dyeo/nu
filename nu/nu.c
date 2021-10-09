@@ -132,11 +132,11 @@ nu_num *_nu_arr_hash(nu_arr *o)
 }
 nu_num *_nu_obj_hash(nu_obj *o)
 {
-    nu_val *hfn = nu_obj_get_val(o, nu_str_new("$hash"));
-    if(hfn != NU_NONE)
-    {
-        return (nu_num *)nu_fn_call(hfn, o);
-    }
+    //nu_val *hfn = nu_obj_get_val(o, nu_str_new("$hash"));
+    //if(hfn != NU_NONE)
+    //{
+    //    return (nu_num *)nu_fn_call(hfn, o);
+    //}
     return NU_NONE;
 }
 nu_num *_nu_thr_hash(nu_thr *o)

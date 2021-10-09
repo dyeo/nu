@@ -1,6 +1,6 @@
 ﻿#include "tests.h"
-#include "../src/nu.h"
-#include "../src/nurbt.h"
+#include "../nu.h"
+#include "../nurbt.h"
 
 #include <stdio.h>
 
