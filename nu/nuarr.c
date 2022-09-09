@@ -7,7 +7,8 @@ nu_arr *nu_arr_new(size_t c)
     nu_arr *r = nu_malloc(nu_arr);
     NU_ASSERT(r != NULL, "heap allocation error");
     r->type = NU_ARR_T;
-    r->len = 0;
+    r->refs = 0u;
+    r->len = 0u;
     if (c == 0)
         c = 16;
     r->cap = c;

@@ -8,6 +8,7 @@ nu_str *_nu_str_new(const char *v, size_t c, size_t n)
     nu_str *r = nu_malloc(nu_str);
     NU_ASSERT(r != NULL, "heap allocation error");
     r->type = NU_STR_T;
+    r->refs = 0u;
     r->cap = c;
     r->len = n;
     r->data = v;
@@ -18,6 +19,7 @@ nu_str *nu_str_new(const char *v)
 {
     size_t c, n;
     utfdlen(v, &c, &n);
+    c++;
     return _nu_str_new(strncpy(nu_calloc(char, c), v, c), c, n);
 }
 

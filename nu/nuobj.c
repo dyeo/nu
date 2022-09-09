@@ -7,6 +7,7 @@ nu_obj *nu_obj_new()
     nu_obj *r = nu_malloc(nu_obj);
     NU_ASSERT(r != NULL, "heap allocation error");
     r->type = NU_OBJ_T;
+    r->refs = 0u;
     r->len = 0;
     r->data = rb_new_tree();
     return r;
