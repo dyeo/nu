@@ -10,6 +10,8 @@ extern "C" {
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <math.h>
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
@@ -17,12 +19,20 @@ extern "C" {
 #define NU_64_BIT
 #define NU_BASE_TYPE_BITS 3
 #define NU_BASE_REFS_BITS 61
+#define NU_REFS_MAX 2305843009213693951
 typedef double num_t;
+typedef long i_num_t;
+#define NU_FLP_FMT "%lf"
+#define NU_INT_FMT "%lld"
 #else
 #define NU_32_BIT
 #define NU_BASE_TYPE_BITS 3
 #define NU_BASE_REFS_BITS 29
+#define NU_REFS_MAX 536870911
 typedef float num_t;
+typedef int i_num_t;
+#define NU_FLP_FMT "%f"
+#define NU_INT_FMT "%ld"
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -30,11 +40,11 @@ typedef float num_t;
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define nu_malloc(T) (T*)malloc(sizeof(T))
-#define nu_calloc(T, C) (T*)calloc(C, sizeof(T))
-#define nu_ralloc(T, P, C) (T*)realloc(P, sizeof(T)*(C))
+#define nu_malloc(TYPE) (TYPE*)malloc(sizeof(TYPE))
+#define nu_calloc(TYPE, COUNT) (TYPE *)calloc(COUNT, sizeof(TYPE))
+#define nu_realloc(TYPE, PTR, COUNT) (TYPE *)realloc(PTR, sizeof(TYPE) * (COUNT))
 
-#define nu_copy(T, D, S, C) (T*)memcpy(D, S, sizeof(T)*(C))
+#define nu_copy(TYPE, DST, SRC, COUNT) (TYPE *)memcpy(DST, SRC, sizeof(TYPE) * (COUNT))
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
@@ -109,10 +119,10 @@ inline static size_t rorN(size_t x, size_t bits)
 const static uint32_t _FNV_PRIME_32 = 16777619;
 const static uint32_t _FNV_OFFSET_32 = 2166136261;
 
-/// <summary>
-/// Returns a unique hash of a given sequence of bytes. (FNV-1a)
-/// </summary>
-/// <param name="str">The string to hash.</param>
+/// @brief Returns a unique hash of a given sequence of bytes (FNV-1a).
+/// @param b The sequence of bytes to hash.
+/// @param n The number of bytes in the sequence.
+/// @return The hash value for b.
 inline static uint32_t hash32(const uint8_t *b, uint32_t n)
 {
     if (b == NULL || *b == '\0')
@@ -129,10 +139,10 @@ inline static uint32_t hash32(const uint8_t *b, uint32_t n)
 const static uint64_t _FNV_PRIME_64 = 1099511628211;
 const static uint64_t _FNV_OFFSET_64 = 14695981039346656037;
 
-/// <summary>
-/// Returns a unique hash of a given sequence of bytes. (FNV-1a)
-/// </summary>
-/// <param name="str">The string to hash.</param>
+/// @brief Returns a unique hash of a given sequence of bytes (FNV-1a).
+/// @param b The sequence of bytes to hash.
+/// @param n The number of bytes in the sequence.
+/// @return The hash value for b.
 inline static uint64_t hash64(const uint8_t *b, uint64_t n)
 {
     if (b == NULL || *b == '\0')
@@ -147,14 +157,29 @@ inline static uint64_t hash64(const uint8_t *b, uint64_t n)
 }
 
 #ifdef NU_64_BIT
+/// @brief Returns a unique hash of a given sequence of bytes (FNV-1a).
+/// @param b The sequence of bytes to hash.
+/// @param n The number of bytes in the sequence.
+/// @return The hash value for b.
 #define hashN(b, n) hash64(b, n)
 #define _FNV_PRIME_N _FNV_PRIME_64
 #define _FNV_OFFSET_N _FNV_OFFSET_64
 #else
+/// @brief Returns a unique hash of a given sequence of bytes (FNV-1a).
+/// @param b The sequence of bytes to hash.
+/// @param n The number of bytes in the sequence.
+/// @return The hash value for b.
 #define hashN(b, n) hash32(b, n)
 #define _FNV_PRIME_N _FNV_PRIME_32
 #define _FNV_OFFSET_N _FNV_OFFSET_32
 #endif
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+inline static bool is_int(num_t num)
+{
+    return floor(num) == num;
+}
 
 // --------------------------------------------------------------------------------------------------------------------------------
 

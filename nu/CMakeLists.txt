@@ -12,6 +12,8 @@ add_library(nu STATIC
     nuobj.c
 )
 
-target_link_libraries(nu m)
+if(UNIX)
+    target_link_libraries(nu m)
+endif()
 
 add_subdirectory(tests)

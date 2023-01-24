@@ -76,7 +76,7 @@ bool nu_to_bool_c(nu_val *b)
 
 nu_bool *nu_to_bool(nu_val *b)
 {
-	return nu_bool_new(_nu_to_bool_ptr[b->type](b));
+	return nu_bool_literal[_nu_to_bool_ptr[b->type](b)];
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

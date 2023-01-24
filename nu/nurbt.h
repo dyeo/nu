@@ -43,6 +43,7 @@ void rb_free_tree(rb_tree *tree);
 void rb_free_tree_iter(rb_tree *tree, rb_traverse_fptr func);
 rb_node *rb_new_node(size_t key, void *val);
 void rb_free_node(rb_node *node);
+void rb_free_node_iter(rb_node *node, rb_traverse_fptr fptr);
 rb_node *rb_min(rb_node *node);
 rb_node *rb_max(rb_node *node);
 rb_node *rb_next(rb_node *node);

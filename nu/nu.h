@@ -105,9 +105,16 @@ const extern nu_num nu_zero;
 const extern nu_num nu_one;
 const extern nu_str nu_empty;
 
-inline static nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return (nu_val *)(&nu_none); }
-
 #define NU_NONE (&nu_none)
+#define NU_TRUE (&nu_true)
+#define NU_FALSE (&nu_false)
+#define NU_ZERO (&nu_zero)
+#define NU_ONE (&nu_one)
+#define NU_EMPTY (&nu_empty)
+
+const extern nu_bool *nu_bool_literal[2];
+
+inline static nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return NU_NONE; }
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -124,13 +131,13 @@ bool nu_finalize();
 // nu.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-inline static void nu_incref(nu_val *val) { NU_ASSERT(val->refs != SIZE_MAX, "val has too many refs"); val->refs++; }
+inline static void nu_incref(nu_val *val) { NU_ASSERT(val->refs != NU_REFS_MAX, "val has too many refs"); val->refs++; }
 inline static void nu_decref(nu_val *val) { NU_ASSERT(val->refs != 0, "val has no refs"); val->refs--; }
 inline static bool nu_opt_incref(nu_val *val) { if(val != NU_NONE) { nu_incref(val); return true; } return false; }
 inline static bool nu_opt_decref(nu_val *val) { if(val != NU_NONE) { nu_decref(val); return true; } return false; }
 
 void nu_free(nu_val *val);
-inline static bool nu_opt_free(nu_val *val) { if(val->refs > 0) { nu_free(val); return true; } return false; }
+inline static bool nu_opt_free(nu_val *val) { if(val->refs == 0) { nu_free(val); return true; } return false; }
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -170,7 +177,6 @@ inline static bool nu_is_fn(nu_val *val) { return val->type == NU_FN_T; }
 inline static bool nu_is_arr(nu_val *val) { return val->type == NU_ARR_T; }
 inline static bool nu_is_obj(nu_val *val) { return val->type == NU_OBJ_T; }
 inline static bool nu_is_thr(nu_val *val) { return val->type == NU_THR_T; }
-
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Boolean Methods

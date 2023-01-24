@@ -11,63 +11,55 @@ void rb_print(rb_node *curr)
 
 int main(int argc, char **argv)
 {
-    printf("%lu\n", sizeof(nu_val *));
-    nu_num *n = nu_num_new(128);
-    nu_str *s = nu_str_new("hello world!");
-    printf("128 : %llu\n", nu_to_size_t(nu_hash(n)));
-    printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
+    // printf("%lu\n", sizeof(nu_val *));
+    // nu_num *n = nu_num_new(128);
+    // nu_str *s = nu_str_new("hello world!");
+    // printf("128 : %llu\n", nu_to_size_t(nu_hash(n)));
+    // printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
+    //
+    // nu_obj *o = nu_obj_new(NULL, NULL, 0);
+    //
+    // nu_obj_set_val(o, n, s);
+    // nu_val *t = nu_obj_get_val(o, n);
+    // const char *r = nu_repr(t);
+    // printf("%s\n", r);
+    // free(r);
+    // nu_num *_hash = nu_hash(s);
+    // size_t _hash_i = nu_to_size_t(_hash);
+    //
+    // printf("%s : %llu\n", s->data, _hash_i);
+    // nu_free(s);
 
-    nu_obj *o = nu_obj_new(NULL, NULL, 0);
-    
-    nu_obj_set_val(o, n, s);
-    nu_val *t = nu_obj_get_val(o, n);
-    const char *r = nu_repr(t);
-    printf("%s\n", r);
-    free(r);
-
-    printf("%s : %llu\n", s->data, nu_to_size_t(nu_hash(s)));
-    nu_free(s);
-
-    size_t SIZE = 100;
+    size_t SIZE = 25;
     printf("max: %lu\n", SIZE);
     nu_arr *arr = nu_arr_new(SIZE);
-    for(int i = 0; i < SIZE; ++i)
+    for (int i = 0; i < SIZE; ++i)
     {
-        nu_num *val = nu_num_new((num_t)i);
-        nu_arr_push_val(arr, val);
-    }
-    printf("len: %lu\n", nu_to_size_t(nu_len(arr)));
-    printf("cap: %lu\n", nu_to_size_t(nu_cap(arr)));
-    if(nu_arr_del_val_i(arr, 53) != NU_NONE)
-    {
-        SIZE--;
-    }
-    printf("AAAA\n");
-    for(int i = 0; i < SIZE; ++i)
-    {
-        nu_val *val = nu_arr_get_val_i(arr, i);
-        printf("val: %lu\n", nu_to_size_t(val));
-    }
+        nu_arr_push_val(arr, nu_num_new((num_t)i));
+        nu_arr_push_val(arr, nu_str_new("e"));
+        if (i == SIZE / 2)
+        {
 
-    NU_ASSERT(false, "failed successfully");
-
-    //nu_val *o = nu_num_new(42);
-    //printf("%s\n\n", nu_repr(o));
-    //
-    //rb_tree *a = rb_new_tree();
-    //for (int i = 0; i < 32; ++i)
+            nu_arr *arr2 = nu_arr_new(SIZE / 2);
+            for (int i = 0; i < SIZE / 2; ++i)
+            {
+                nu_num *val2 = nu_num_new((num_t)i);
+                nu_arr_push_val(arr2, val2);
+            }
+            nu_arr_push_val(arr, arr2);
+        }
+    }
+    printf("%s\n", nu_repr(arr));
+    // printf("len: %lu\n", nu_to_size_t(nu_len(arr)));
+    // printf("cap: %lu\n", nu_to_size_t(nu_cap(arr)));
+    // if(nu_arr_del_val_i(arr, 53) != NU_NONE)
     //{
-    //    rb_insert(a, rb_new_node(i, 0));
-    //}
-    //
-    //rb_in_order(a, rb_print);
-    //
-    //printf("\n");
-    //
-    //for (int i = 0; i < 32; ++i)
+    //     SIZE--;
+    // }
+    // printf("AAAA\n");
+    // for(int i = 0; i < SIZE; ++i)
     //{
-    //    rb_delete(a, rb_search(a, i));
-    //}
-    //
-    //rb_in_order(a, rb_print);
+    //     nu_val *val = nu_arr_get_val_i(arr, i);
+    //     printf("val: %lu\n", nu_to_size_t(val));
+    // }
 }
