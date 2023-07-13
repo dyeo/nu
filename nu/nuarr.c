@@ -2,11 +2,11 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_arr *nu_arr_new(size_t c)
+nu_arr *nu_new_arr(size_t c)
 {
     nu_arr *r = nu_malloc(nu_arr);
     NU_ASSERT(r != NULL, "heap allocation error");
-    r->type = NU_ARR_T;
+    r->type = NU_T_ARR;
     r->refs = 0u;
     r->len = 0u;
     if (c == 0)
@@ -16,9 +16,9 @@ nu_arr *nu_arr_new(size_t c)
     return r;
 }
 
-void nu_arr_free(nu_arr *o)
+void nu_free_arr(nu_arr *o)
 {
-    o->type = NU_NONE_T;
+    o->type = NU_T_NONE;
     for (size_t i = 0; i < o->len; ++i)
     {
         nu_opt_decref(o->data[i]);
@@ -30,7 +30,7 @@ void nu_arr_free(nu_arr *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-bool nu_arr_set_val_i(nu_arr *a, size_t i, nu_val *v)
+bool nu_c_set_val_arr(nu_arr *a, size_t i, nu_val *v)
 {
     if (i < a->len)
     {
@@ -43,13 +43,13 @@ bool nu_arr_set_val_i(nu_arr *a, size_t i, nu_val *v)
     return false;
 }
 
-bool nu_arr_set_val(nu_arr *a, nu_num *i, nu_val *v)
+bool nu_set_val_arr(nu_arr *a, nu_num *i, nu_val *v)
 {
     NU_ASSERT(nu_is_num(i), "cannot index array with non-number");
-    return nu_arr_set_val_i(a, nu_to_size_t(i), v);
+    return nu_c_set_val_arr(a, nu_c_to_size_t(i), v);
 }
 
-bool nu_arr_add_val_i(nu_arr *a, size_t i, nu_val *v)
+bool nu_c_add_val_arr(nu_arr *a, size_t i, nu_val *v)
 {
     if (i > a->len)
     {
@@ -85,13 +85,13 @@ bool nu_arr_add_val_i(nu_arr *a, size_t i, nu_val *v)
     return true;
 }
 
-bool nu_arr_add_val(nu_arr *a, nu_num *i, nu_val *v)
+bool nu_add_val_arr(nu_arr *a, nu_num *i, nu_val *v)
 {
     NU_ASSERT(nu_is_num(i), "cannot index array with non-number");
-    return nu_arr_add_val_i(a, nu_to_size_t(i), v);
+    return nu_c_add_val_arr(a, nu_c_to_size_t(i), v);
 }
 
-nu_val *nu_arr_get_val_i(nu_arr *a, size_t i)
+nu_val *nu_c_get_val_arr(nu_arr *a, size_t i)
 {
     if (i < a->len)
     {
@@ -100,15 +100,14 @@ nu_val *nu_arr_get_val_i(nu_arr *a, size_t i)
     return NU_NONE;
 }
 
-nu_val *nu_arr_get_val(nu_arr *a, nu_num *i)
+nu_val *nu_get_val_arr(nu_arr *a, nu_num *i)
 {
     NU_ASSERT(nu_is_num(i), "cannot index array with non-number");
-    return nu_arr_get_val_i(a, nu_to_size_t(i));
+    return nu_c_get_val_arr(a, nu_c_to_size_t(i));
 }
 
-nu_val *nu_arr_del_val_i(nu_arr *a, size_t i)
+nu_val *nu_c_del_val_arr(nu_arr *a, size_t i)
 {
-    printf("AAAA\n");
     if (i < a->len)
     {
         nu_val *val = a->data[i];
@@ -123,32 +122,10 @@ nu_val *nu_arr_del_val_i(nu_arr *a, size_t i)
     return NU_NONE;
 }
 
-nu_val *nu_arr_del_val(nu_arr *arr, nu_num *idx)
+nu_val *nu_del_val_arr(nu_arr *arr, nu_num *idx)
 {
     NU_ASSERT(nu_is_num(idx), "cannot index array with non-number");
-    return nu_arr_del_val_i(arr, nu_to_size_t(idx));
-}
-
-// --------------------------------------------------------------------------------------------------------------------------------
-
-void nu_arr_push_val(nu_arr *arr, nu_val *val)
-{
-    nu_arr_add_val_i(arr, arr->len, val);
-}
-
-nu_val *nu_arr_pop_val(nu_arr *arr)
-{
-    return nu_arr_del_val_i(arr, arr->len - 1);
-}
-
-void nu_arr_enqueue_val(nu_arr *arr, nu_val *val)
-{
-    nu_arr_add_val_i(arr, 0, val);
-}
-
-nu_val *nu_arr_dequeue_val(nu_arr *arr)
-{
-    return nu_arr_del_val_i(arr, arr->len - 1);
+    return nu_c_del_val_arr(arr, nu_c_to_size_t(idx));
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
