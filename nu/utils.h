@@ -40,7 +40,7 @@ typedef int i_num_t;
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define nu_malloc(TYPE) (TYPE*)malloc(sizeof(TYPE))
+#define nu_malloc(TYPE) (TYPE *)malloc(sizeof(TYPE))
 #define nu_calloc(TYPE, COUNT) (TYPE *)calloc(COUNT, sizeof(TYPE))
 #define nu_realloc(TYPE, PTR, COUNT) (TYPE *)realloc(PTR, sizeof(TYPE) * (COUNT))
 
@@ -48,18 +48,18 @@ typedef int i_num_t;
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-#define NU_DEF_FPTR(name, ret, ...) typedef ret (*name)( __VA_ARGS__ )
+#define NU_NEW_FPTR(NAME, RESULT, ...) typedef RESULT (*NAME)( __VA_ARGS__ )
 
-#define NU_FPTR(ret, ...) ret (*)( __VA_ARGS__ )
+#define NU_FPTR(RESULT, ...) RESULT (*)( __VA_ARGS__ )
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-#define NU_LOG(msg) { fprintf(stdout, "LOG: %s\n", msg); }
-#define NU_ERR(msg) {  fprintf(stderr, "ERR: %s\n", msg); exit(1); }
+#define NU_LOG(MESSAGE) { fprintf(stdout, "LOG: %s\n", MESSAGE); }
+#define NU_ERR(MESSAGE) {  fprintf(stderr, "ERR: %s\n", MESSAGE); exit(1); }
 #ifndef NDEBUG
-#define NU_ASSERT(exp, msg) { if (!(exp)) { fprintf(stderr, "ERR: " __FILE__ ":" xstr(__LINE__) ": ASSERT: " xstr(#exp) " is false: %s\n", msg); exit(1); } }
+#define NU_ASSERT(EXPRESSION, MESSAGE) { if (!(EXPRESSION)) { fprintf(stderr, "ERR: " __FILE__ ":" xstr(__LINE__) ": ASSERT: " xstr(#EXPRESSION) " is false: %s\n", MESSAGE); exit(1); } }
 #else
-#define NU_ASSERT(exp, msg) ((void)0)
+#define NU_ASSERT(EXPRESSION, MESSAGE) ((void)0)
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -179,6 +179,11 @@ inline static uint64_t hash64(const uint8_t *b, uint64_t n)
 inline static bool is_int(num_t num)
 {
     return floor(num) == num;
+}
+
+inline static bool is_float(num_t num)
+{
+    return floor(num) != num;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

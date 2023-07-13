@@ -50,6 +50,7 @@ int main(int argc, char **argv)
         }
     }
     printf("%s\n", nu_repr(arr));
+    nu_free(arr);
     // printf("len: %lu\n", nu_to_size_t(nu_len(arr)));
     // printf("cap: %lu\n", nu_to_size_t(nu_cap(arr)));
     // if(nu_arr_del_val_i(arr, 53) != NU_NONE)

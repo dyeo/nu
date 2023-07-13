@@ -19,8 +19,7 @@ nu_str *nu_str_new(const char *str)
 {
     size_t blen, clen;
     utfdlen(str, &blen, &clen);
-    blen++;
-    char *dest = nu_calloc(char, blen);
+    char *dest = nu_calloc(char, ++blen);
     dest[blen - 1] = NULL;
     strncpy(dest, str, blen - 1);
     return _nu_str_new(dest, blen, clen);
@@ -46,7 +45,7 @@ nu_str *nu_str_get_val(nu_str *str, nu_num *idx)
     size_t i = nu_to_size_t(idx);
     if (i > str->len)
         return NU_NONE;
-    const char *c = str;
+    char *c = str->data;
     size_t n = 0;
     for (; i-- > 0;)
     {

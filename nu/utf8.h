@@ -48,7 +48,7 @@ inline static size_t utfclen(const char *str)
 /// @brief Counts the number of bytes and characters respectively in a UTF-8 string.
 /// @param str The UTF-8 string to count.
 /// @param blen The length of the string in bytes.
-/// @param clen The number of characters in the string.
+/// @param clen The length of the string in characters.
 inline static void utfdlen(const char *str, size_t *blen, size_t *clen)
 {
     *blen = 0;
@@ -70,8 +70,7 @@ inline static char *utfdup(const char *str)
 {
     size_t blen, clen;
     utfdlen(str, &blen, &clen);
-    blen++;
-    char *dest = nu_calloc(char, blen);
+    char *dest = nu_calloc(char, ++blen);
     dest[blen-1] = NULL;
     strncpy(dest, str, blen-1);
     return dest;
@@ -94,8 +93,7 @@ inline static size_t utfjoin(char *out, size_t out_blen, const char *delim, cons
     {
         ptr = _util_cat(ptr, strend, *strings);
         strings++;
-        if (*strings)
-            ptr = _util_cat(ptr, strend, delim);
+        if (*strings) ptr = _util_cat(ptr, strend, delim);
     }
     return ptr - out;
 }

@@ -23,7 +23,7 @@ void nu_num_free(nu_num *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_to_num_t_fptr, num_t, nu_val *);
+NU_NEW_FPTR(nu_to_num_t_fptr, num_t, nu_val *);
 
 num_t _nu_none_to_num_t(nu_val *o)
 {

@@ -30,7 +30,7 @@ bool nu_finalize()
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_free_fptr, void, nu_val *);
+NU_NEW_FPTR(nu_free_fptr, void, nu_val *);
 
 void _nu_none_free(nu_val *o) {}
 
@@ -50,7 +50,7 @@ void nu_free(nu_val *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_len_fptr, nu_num *, const nu_val *);
+NU_NEW_FPTR(nu_len_fptr, nu_num *, const nu_val *);
 
 nu_num *_nu_none_len(nu_val *o)
 {
@@ -73,7 +73,7 @@ nu_num *nu_len(const nu_val *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_cap_fptr, nu_num *, const nu_val *);
+NU_NEW_FPTR(nu_cap_fptr, nu_num *, const nu_val *);
 
 nu_num *_nu_none_cap(nu_val *o)
 {
@@ -96,7 +96,7 @@ nu_num *nu_cap(const nu_val *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_hash_fptr, nu_num *, nu_val *);
+NU_NEW_FPTR(nu_hash_fptr, nu_num *, nu_val *);
 
 nu_num *_nu_none_hash(nu_val *o)
 {
@@ -158,7 +158,7 @@ nu_num *nu_hash(const nu_val *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_repr_fptr, const char *, const nu_val *);
+NU_NEW_FPTR(nu_repr_fptr, const char *, const nu_val *);
 
 const char *_nu_none_repr(const nu_val *o)
 {
@@ -262,7 +262,7 @@ const char *nu_repr(const nu_val *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_set_val_fptr, bool, nu_val *, nu_val *, nu_val *);
+NU_NEW_FPTR(nu_set_val_fptr, bool, nu_val *, nu_val *, nu_val *);
 
 bool _nu_none_set_val(nu_val *_0, nu_val *_1, nu_val *_2)
 {
@@ -285,7 +285,7 @@ bool nu_set_val(nu_val *cnt, nu_val *key, nu_val *val)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_get_val_fptr, nu_val *, nu_val *, nu_val *);
+NU_NEW_FPTR(nu_get_val_fptr, nu_val *, nu_val *, nu_val *);
 
 nu_val *_nu_none_get_val(nu_val *_0, nu_val *_1)
 {
@@ -308,7 +308,7 @@ nu_val *nu_get_val(nu_val *cnt, nu_val *key)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_add_val_fptr, bool, nu_val *, nu_val *, nu_val *);
+NU_NEW_FPTR(nu_add_val_fptr, bool, nu_val *, nu_val *, nu_val *);
 
 bool _nu_none_add_val(nu_val *_0, nu_val *_1, nu_val *_2)
 {
@@ -331,7 +331,7 @@ bool nu_add_val(nu_val *cnt, nu_val *key, nu_val *val)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_del_val_fptr, nu_val *, nu_val *, nu_val *);
+NU_NEW_FPTR(nu_del_val_fptr, nu_val *, nu_val *, nu_val *);
 
 nu_val *_nu_none_del_val(nu_val *_0, nu_val *_1)
 {

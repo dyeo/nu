@@ -23,7 +23,7 @@ void nu_bool_free(nu_bool *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_DEF_FPTR(nu_to_bool_fptr, bool, nu_val *);
+NU_NEW_FPTR(nu_to_bool_fptr, bool, nu_val *);
 
 bool _nu_none_to_bool(nu_val *o)
 {
