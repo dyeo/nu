@@ -124,20 +124,7 @@ inline static nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return NU_NONE; }
 
 bool nu_initialize();
 bool nu_finalize();
-
-
-// --------------------------------------------------------------------------------------------------------------------------------
-// Memory Management
-// nu.c
-// --------------------------------------------------------------------------------------------------------------------------------
-
-inline static void nu_incref(nu_val *val) { NU_ASSERT(val->refs != NU_REFS_MAX, "val has too many refs"); val->refs++; }
-inline static void nu_decref(nu_val *val) { NU_ASSERT(val->refs != 0, "val has no refs"); val->refs--; }
-inline static bool nu_opt_incref(nu_val *val) { if(val != NU_NONE) { nu_incref(val); return true; } return false; }
-inline static bool nu_opt_decref(nu_val *val) { if(val != NU_NONE) { nu_decref(val); return true; } return false; }
-
-void nu_free(nu_val *val);
-inline static bool nu_free_opt(nu_val *val) { if(val->refs == 0) { nu_free(val); return true; } return false; }
+bool nu_is_initialized();
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -150,7 +137,6 @@ nu_num *nu_cap(const nu_val *val);
 
 nu_num *nu_hash(const nu_val *val);
 const char *nu_c_repr(const nu_val *val);
-nu_str *nu_repr(const nu_val *val);
 
 bool nu_set_val(nu_val *cnt, nu_val *key, nu_val *val);
 nu_val *nu_get_val(nu_val *cnt, nu_val *key);
@@ -178,6 +164,19 @@ inline static bool nu_is_fn(nu_val *val) { return val->type == NU_T_FN; }
 inline static bool nu_is_arr(nu_val *val) { return val->type == NU_T_ARR; }
 inline static bool nu_is_obj(nu_val *val) { return val->type == NU_T_OBJ; }
 inline static bool nu_is_thr(nu_val *val) { return val->type == NU_T_THR; }
+
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Memory Management
+// nu.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+void nu_free(nu_val *val);
+inline static bool nu_opt_free(nu_val *val) { if(val->refs == 0) { nu_free(val); return true; } return false; }
+
+inline static bool nu_incref(nu_val *val) { if (nu_is_none(val)) { return false; } else { NU_ASSERT(val->refs != NU_REFS_MAX, "val has too many refs"); val->refs++; return true; } }
+inline static bool nu_decref(nu_val *val) { if (nu_is_none(val)) { return false; } else { NU_ASSERT(val->refs != 0, "val has no refs"); val->refs--; return true; } }
+
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Boolean Methods
@@ -224,6 +223,7 @@ void nu_free_str(nu_str *str);
 
 nu_str *nu_get_val_str(nu_str *str, nu_num *key);
 
+
 // --------------------------------------------------------------------------------------------------------------------------------
 // Array Methods
 // nuarr.c
@@ -266,6 +266,14 @@ bool nu_set_val_obj(nu_obj *obj, nu_val *key, nu_val *val);
 nu_val *nu_get_val_obj(nu_obj *obj, nu_val *key);
 inline static bool nu_add_val_obj(nu_obj *obj, nu_val *key, nu_val *val) { return nu_set_val_obj(obj, key, val); }
 nu_val *nu_del_val_obj(nu_obj *obj, nu_val *key);
+
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Miscellaneous Methods
+// numisc.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+inline static nu_str *nu_repr(const nu_val *val) { return nu_new_str(nu_c_repr(val)); }
 
 
 // --------------------------------------------------------------------------------------------------------------------------------

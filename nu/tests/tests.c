@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     // printf("%s : %llu\n", s->data, _hash_i);
     // nu_free(s);
 
-    size_t SIZE = 25;
+    size_t SIZE = 32;
     printf("max: %lu\n", SIZE);
     nu_arr *arr = nu_new_arr(SIZE);
     for (int i = 0; i < SIZE; ++i)
@@ -39,18 +39,23 @@ int main(int argc, char **argv)
         nu_push_val_arr(arr, nu_new_str("e"));
         if (i == SIZE / 2)
         {
-
             nu_arr *arr2 = nu_new_arr(SIZE / 2);
             for (int i = 0; i < SIZE / 2; ++i)
             {
                 nu_num *val2 = nu_new_num((num_t)i);
                 nu_push_val_arr(arr2, val2);
+                nu_push_val_arr(arr2, nu_new_str("e"));
             }
             nu_push_val_arr(arr, arr2);
         }
     }
-    nu_str *repr = nu_repr(arr);
-    printf("\" %s 7\"\n", nu_c_repr(repr));
+    printf("%s\n", nu_c_repr(arr));
+    printf("\n");
+    for (int i = arr->len; i > 0; i--)
+    {
+        nu_pop_val_arr(arr);
+    }
+    printf("%s\n", nu_c_repr(arr));
     nu_free(arr);
     // printf("len: %lu\n", nu_to_size_t(nu_len(arr)));
     // printf("cap: %lu\n", nu_to_size_t(nu_cap(arr)));

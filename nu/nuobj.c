@@ -15,15 +15,15 @@ nu_obj *nu_new_obj()
 
 void _nu_free_iter(rb_node *n)
 {
-    nu_free_opt((nu_val*)n->val);
+    nu_opt_free((nu_val *)n->val);
 }
 
 void nu_free_obj(nu_obj *o)
 {
-	o->type = NU_T_NONE;
-	o->refs = 0;
+    o->type = NU_T_NONE;
+    o->refs = 0;
     rb_free_tree_iter(o->data, _nu_free_iter);
-	o->data = NULL;
+    o->data = NULL;
     free(o);
 }
 
@@ -31,14 +31,16 @@ void nu_free_obj(nu_obj *o)
 
 bool nu_set_val_obj(nu_obj *obj, nu_val *key, nu_val *val)
 {
-    if (obj == NU_NONE || key == NU_NONE) return false;
+    if (obj == NU_NONE || key == NU_NONE)
+        return false;
     size_t hashv = nu_c_to_size_t(nu_hash(key));
-    if (hashv == 0) return false;
+    if (hashv == 0)
+        return false;
     rb_node *snode = rb_search(obj->data, hashv);
     if (snode != RB_NIL)
     {
-        nu_val *old = (nu_val*)snode->val;
-        nu_opt_decref(old);
+        nu_val *old = (nu_val *)snode->val;
+        nu_decref(old);
         if (val == NU_NONE)
         {
             obj->len--;
@@ -47,6 +49,7 @@ bool nu_set_val_obj(nu_obj *obj, nu_val *key, nu_val *val)
         }
         else
         {
+            nu_incref(val);
             snode->val = (void *)val;
         }
         return true;
@@ -54,7 +57,7 @@ bool nu_set_val_obj(nu_obj *obj, nu_val *key, nu_val *val)
     else if (val != NU_NONE)
     {
         obj->len++;
-        snode = rb_new_node(hashv, (void*)val);
+        snode = rb_new_node(hashv, (void *)val);
         nu_incref(val);
         rb_insert(obj->data, snode);
         return true;
@@ -64,27 +67,31 @@ bool nu_set_val_obj(nu_obj *obj, nu_val *key, nu_val *val)
 
 nu_val *nu_get_val_obj(nu_obj *obj, nu_val *key)
 {
-    if (obj == NU_NONE || key == NU_NONE) return NU_NONE;
+    if (obj == NU_NONE || key == NU_NONE)
+        return NU_NONE;
     size_t hashv = nu_c_to_size_t(nu_hash(key));
-    if (hashv == 0) return NU_NONE;
+    if (hashv == 0)
+        return NU_NONE;
     rb_node *snode = rb_search(obj->data, hashv);
-    if(snode != RB_NIL)
+    if (snode != RB_NIL)
     {
-        return (nu_val*)snode->val;
+        return (nu_val *)snode->val;
     }
     return NU_NONE;
 }
 
 nu_val *nu_del_val_obj(nu_obj *obj, nu_val *key)
 {
-    if (obj == NU_NONE || key == NU_NONE) return false;
+    if (obj == NU_NONE || key == NU_NONE)
+        return false;
     size_t hashv = nu_c_to_size_t(nu_hash(key));
-    if (hashv == 0) return false;
+    if (hashv == 0)
+        return false;
     rb_node *snode = rb_search(obj->data, hashv);
-    if(snode != RB_NIL)
+    if (snode != RB_NIL)
     {
-        nu_val *val = (nu_val*)snode->val;
-        nu_opt_decref(val);
+        nu_val *val = (nu_val *)snode->val;
+        nu_decref(val);
         snode = rb_delete(obj->data, snode);
         rb_free_node(snode);
         return val;

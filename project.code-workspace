@@ -33,7 +33,9 @@
                 "description": "Select build configuration",
                 "options": [
                     "Debug",
-                    "Release"
+                    "Release",
+                    "MinSizeRel",
+                    "RelWithDebInfo"
                 ],
                 "default": "Debug"
             }

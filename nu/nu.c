@@ -20,12 +20,23 @@ const nu_bool *nu_literal_bool[2] = {NU_FALSE, NU_TRUE};
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
+bool nu_initialized = false;
+
 bool nu_initialize()
 {
+    nu_initialized = true;
+    return true;
 }
 
 bool nu_finalize()
 {
+    nu_initialized = false;
+    return false;
+}
+
+bool nu_is_initialized()
+{
+    return nu_initialized;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -258,14 +269,6 @@ nu_repr_fptr _nu_repr_ptr[8] = {
 const char *nu_c_repr(const nu_val *o)
 {
     return _nu_repr_ptr[o->type](o);
-}
-
-// --------------------------------------------------------------------------------------------------------------------------------
-
-nu_str *nu_repr(const nu_val *o)
-{
-    const char *repr = _nu_repr_ptr[o->type](o);
-    return nu_new_str(repr);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

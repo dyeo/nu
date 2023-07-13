@@ -21,7 +21,7 @@ void nu_free_arr(nu_arr *o)
     o->type = NU_T_NONE;
     for (size_t i = 0; i < o->len; ++i)
     {
-        nu_opt_decref(o->data[i]);
+        nu_decref(o->data[i]);
     }
     o->len = 0;
     free(o->data);
@@ -35,8 +35,8 @@ bool nu_c_set_val_arr(nu_arr *a, size_t i, nu_val *v)
     if (i < a->len)
     {
         nu_val *old = a->data[i];
-        nu_opt_decref(old);
-        nu_opt_incref(v);
+        nu_decref(old);
+        nu_incref(v);
         a->data[i] = v;
         return true;
     }
@@ -55,7 +55,7 @@ bool nu_c_add_val_arr(nu_arr *a, size_t i, nu_val *v)
     {
         return false;
     }
-    nu_opt_incref(v);
+    nu_incref(v);
     if (a->len == a->cap)
     {
         a->cap *= 2;
@@ -111,7 +111,7 @@ nu_val *nu_c_del_val_arr(nu_arr *a, size_t i)
     if (i < a->len)
     {
         nu_val *val = a->data[i];
-        nu_opt_decref(val);
+        nu_decref(val);
         for (i; i < a->len - 1; ++i)
         {
             a->data[i] = a->data[i + 1];
