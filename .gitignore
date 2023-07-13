@@ -95,6 +95,7 @@ language-server-log.txt
 .history/
 
 ### VisualStudioCode Patch ###
+
 # Ignore all local history of files
 .history
 .ionide
