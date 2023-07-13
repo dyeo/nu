@@ -1,0 +1,64 @@
+{
+    "folders": [
+        {
+            "name": "nu",
+            "path": "."
+        }
+    ],
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+        ]
+    },
+    "launch": {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "GDB: Run Tests",
+                "type": "cppvsdbg",
+                "request": "launch",
+                "program": "${workspaceFolder}/build/nu/tests/${input:buildConfig}/nutest.exe",
+                "args": [],
+                "stopAtEntry": false,
+                "cwd": "${workspaceFolder}",
+                "environment": [],
+                "externalConsole": true
+            }
+        ],
+        "compounds": [],
+        "inputs": [
+            {
+                "id": "buildConfig",
+                "type": "pickString",
+                "description": "Select build configuration",
+                "options": [
+                    "Debug",
+                    "Release"
+                ],
+                "default": "Debug"
+            }
+        ]
+    },
+    "settings": {
+        "files.associations": {
+            "*.h": "c",
+            "*.c": "c",
+            "*.nu": "lua" // temporary
+        },
+        "files.exclude": {
+            "**/.git": true,
+            "**/.svn": true,
+            "**/.hg": true,
+            "**/CVS": true,
+            "**/.DS_Store": true,
+            "**/Thumbs.db": true,
+            "**/*.sln": true,
+            "**/*.vcxproj": true,
+            "**/*.vcxproj.filters": true,
+            "**/*.cmake": true,
+            "**/CMakeCache.txt": true,
+            "**/CMakeFiles": true,
+            "build": true
+        }
+    }
+}
