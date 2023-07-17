@@ -30,6 +30,8 @@ int main(int argc, char **argv)
     // printf("%s : %llu\n", s->data, _hash_i);
     // nu_free(s);
 
+    printf(NU_SZE_FMT"\n", NU_REFS_MAX);
+
     size_t SIZE = 32;
     printf("max: %lu\n", SIZE);
     nu_arr *arr = nu_new_arr(SIZE);

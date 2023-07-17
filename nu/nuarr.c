@@ -9,9 +9,7 @@ nu_arr *nu_new_arr(size_t c)
     r->type = NU_T_ARR;
     r->refs = 0u;
     r->len = 0u;
-    if (c == 0)
-        c = 16;
-    r->cap = c;
+    r->cap = c == 0 ? 16 : c;
     r->data = nu_calloc(nu_val *, r->cap);
     return r;
 }
@@ -19,11 +17,11 @@ nu_arr *nu_new_arr(size_t c)
 void nu_free_arr(nu_arr *o)
 {
     o->type = NU_T_NONE;
+    o->len = o->cap = 0;
     for (size_t i = 0; i < o->len; ++i)
     {
         nu_decref(o->data[i]);
     }
-    o->len = 0;
     free(o->data);
     free(o);
 }

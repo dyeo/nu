@@ -10,6 +10,8 @@ add_library(nu STATIC
     nustr.c
     nuarr.c
     nuobj.c
+    nuvm.c
+    nuvmops.c
 )
 
 if(UNIX)

@@ -15,7 +15,8 @@ nu_obj *nu_new_obj()
 
 void _nu_free_iter(rb_node *n)
 {
-    nu_opt_free((nu_val *)n->val);
+    nu_decref(n->val);
+    nu_opt_free(n->val);
 }
 
 void nu_free_obj(nu_obj *o)
@@ -68,25 +69,38 @@ bool nu_set_val_obj(nu_obj *obj, nu_val *key, nu_val *val)
 nu_val *nu_get_val_obj(nu_obj *obj, nu_val *key)
 {
     if (obj == NU_NONE || key == NU_NONE)
+    {
         return NU_NONE;
+    }
     size_t hashv = nu_c_to_size_t(nu_hash(key));
+
     if (hashv == 0)
+    {
         return NU_NONE;
+    }
+
     rb_node *snode = rb_search(obj->data, hashv);
     if (snode != RB_NIL)
     {
         return (nu_val *)snode->val;
     }
+
     return NU_NONE;
 }
 
 nu_val *nu_del_val_obj(nu_obj *obj, nu_val *key)
 {
     if (obj == NU_NONE || key == NU_NONE)
-        return false;
+    {
+        return NU_NONE;
+    }
+
     size_t hashv = nu_c_to_size_t(nu_hash(key));
     if (hashv == 0)
-        return false;
+    {
+        return NU_NONE;
+    }
+
     rb_node *snode = rb_search(obj->data, hashv);
     if (snode != RB_NIL)
     {
@@ -96,6 +110,7 @@ nu_val *nu_del_val_obj(nu_obj *obj, nu_val *key)
         rb_free_node(snode);
         return val;
     }
+
     return NU_NONE;
 }
 

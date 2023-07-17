@@ -45,7 +45,9 @@
         "files.associations": {
             "*.h": "c",
             "*.c": "c",
-            "*.nu": "lua" // temporary
+            "*.inl": "c",
+            "*.py": "python",
+            "*.nu": "lua"
         },
         "files.exclude": {
             "**/.git": true,

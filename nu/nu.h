@@ -85,12 +85,12 @@ typedef struct nu_thr
 } nu_thr;
 
 
-
 // --------------------------------------------------------------------------------------------------------------------------------
 // Function Pointer Definitions
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_NEW_FPTR(nu_oper_t, nu_val *, nu_val *, nu_val *);
+NU_NEW_FPTR(nu_cmpr_t, const nu_bool *, const nu_val *, const nu_val *);
+NU_NEW_FPTR(nu_oper_t, nu_val *, nu_val *, const nu_val *);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ const extern nu_str nu_empty;
 
 const extern nu_bool *nu_literal_bool[2];
 
-inline static nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return NU_NONE; }
+inline static const nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return NU_NONE; }
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -143,18 +143,27 @@ nu_val *nu_get_val(nu_val *cnt, nu_val *key);
 bool nu_add_val(nu_val *cnt, nu_val *key, nu_val *val);
 nu_val *nu_del_val(nu_val *cnt, nu_val *key);
 
-nu_val *nu_lt(nu_val *lhs, nu_val *rhs);
-nu_val *nu_le(nu_val *lhs, nu_val *rhs);
-nu_val *nu_eq(nu_val *lhs, nu_val *rhs);
-nu_val *nu_ne(nu_val *lhs, nu_val *rhs);
-nu_val *nu_ge(nu_val *lhs, nu_val *rhs);
-nu_val *nu_gt(nu_val *lhs, nu_val *rhs);
+const nu_bool *nu_lt(const nu_val *lhs, const nu_val *rhs);
+const nu_bool *nu_le(const nu_val *lhs, const nu_val *rhs);
+const nu_bool *nu_eq(const nu_val *lhs, const nu_val *rhs);
+const nu_bool *nu_ne(const nu_val *lhs, const nu_val *rhs);
+const nu_bool *nu_ge(const nu_val *lhs, const nu_val *rhs);
+const nu_bool *nu_gt(const nu_val *lhs, const nu_val *rhs);
 
-nu_val *nu_add(nu_val *lhs, nu_val *rhs);
-nu_val *nu_sub(nu_val *lhs, nu_val *rhs);
-nu_val *nu_mul(nu_val *lhs, nu_val *rhs);
-nu_val *nu_div(nu_val *lhs, nu_val *rhs);
-nu_val *nu_mod(nu_val *lhs, nu_val *rhs);
+#define NU_LT 0
+#define NU_LE 1
+#define NU_EQ 2
+#define NU_NE 3
+#define NU_GE 4
+#define NU_GT 5
+
+const nu_bool *nu_cmp(const nu_val *lhs, const nu_val *rhs, const uint8_t how);
+
+nu_val *nu_add(nu_val *lhs, const nu_val *rhs);
+nu_val *nu_sub(nu_val *lhs, const nu_val *rhs);
+nu_val *nu_mul(nu_val *lhs, const nu_val *rhs);
+nu_val *nu_div(nu_val *lhs, const nu_val *rhs);
+nu_val *nu_mod(nu_val *lhs, const nu_val *rhs);
 
 inline static bool nu_is_none(nu_val *val) { return val->type == NU_T_NONE; }
 inline static bool nu_is_bool(nu_val *val) { return val->type == NU_T_BOOL; }
@@ -262,6 +271,9 @@ void nu_free_obj(nu_obj *obj);
 inline static nu_num *nu_len_obj(nu_obj *obj) { return nu_new_num((num_t)obj->len); }
 inline static nu_num *nu_cap_obj(nu_obj *arr) { return nu_new_num((num_t)SIZE_MAX); }
 
+inline static size_t nu_c_len_obj(nu_obj *obj) { return obj->len; }
+inline static size_t nu_c_cap_obj(nu_obj *arr) { return SIZE_MAX; }
+
 bool nu_set_val_obj(nu_obj *obj, nu_val *key, nu_val *val);
 nu_val *nu_get_val_obj(nu_obj *obj, nu_val *key);
 inline static bool nu_add_val_obj(nu_obj *obj, nu_val *key, nu_val *val) { return nu_set_val_obj(obj, key, val); }
@@ -274,6 +286,96 @@ nu_val *nu_del_val_obj(nu_obj *obj, nu_val *key);
 // --------------------------------------------------------------------------------------------------------------------------------
 
 inline static nu_str *nu_repr(const nu_val *val) { return nu_new_str(nu_c_repr(val)); }
+
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Virtual Machine
+// nuvm.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+// operation
+typedef struct nu_op
+{
+    uint8_t op;
+    void **args;
+} nu_op;
+
+nu_op *nu_new_op(uint8_t op, ...);
+void nu_free_op(nu_op *op);
+
+// virtual machine
+typedef struct nu_vm
+{
+    nu_val *reg[NU_REGISTERS]; // registers
+
+    nu_obj *glb; // global variables
+    nu_obj *loc; // local variables
+    
+    size_t opl; // operation length
+    size_t opc; // operation capacity
+    nu_op **ops; // operations array
+    
+    size_t opp; // operation pointer
+} nu_vm;
+
+nu_vm *nu_new_vm();
+void nu_free_vm(nu_vm *vm);
+
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Virtual Machine Operations
+// nuvmops.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+#include "nuvmop.inl"
+
+// no-op
+NU_VM_OP_0(0x00, noop);
+
+// load register with value
+NU_VM_OP_2(0x01, load, const uint8_t, nu_val *);
+
+// swap register values
+NU_VM_OP_2(0x02, swap, const uint8_t, const uint8_t);
+
+// compare register to value and set register to result
+NU_VM_OP_3(0x03, cmpv, const uint8_t, const nu_val *, const uint8_t);
+
+// compare register to other register and set register to result
+NU_VM_OP_3(0x04, cmpr, const uint8_t, const uint8_t, const uint8_t);
+
+// jump to op if value in register evaluates to true
+NU_VM_OP_2(0x05, jmp, const uint8_t, const size_t);
+
+// non-conditional jump to op
+NU_VM_OP_1(0x06, njmp, const size_t);
+
+// add value to value in register
+NU_VM_OP_2(0x07, add, const uint8_t, const nu_val *);
+
+// subtract value from value in register
+NU_VM_OP_2(0x08, sub, const uint8_t, const nu_val *);
+
+// multiply register value by other value
+NU_VM_OP_2(0x09, mul, const uint8_t, const nu_val *);
+
+// divide register value by other value
+NU_VM_OP_2(0x0A, div, const uint8_t, const nu_val *);
+
+// modulus register value by other value
+NU_VM_OP_2(0x0B, mod, const uint8_t, const nu_val *);
+
+// add value to obj or arr in register
+NU_VM_OP_3(0x0C, addv, const uint8_t, const nu_val *, const nu_val *);
+
+// set value in obj or arr in register
+NU_VM_OP_3(0x0D, setv, const uint8_t, const nu_val *, const nu_val *);
+
+// get value in obj or arr in one register and load it to another
+NU_VM_OP_3(0x0E, getv, const uint8_t, const nu_val *, const uint8_t);
+
+// delete value in obj or arr in one register and load it to another
+NU_VM_OP_3(0x0F, delv, const uint8_t, const nu_val *, const uint8_t);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------

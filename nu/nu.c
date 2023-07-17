@@ -365,307 +365,326 @@ nu_val *nu_del_val(nu_val *cnt, nu_val *key)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_val *_nu_lt_bool(nu_bool *l, nu_bool *r)
-{
-    return NU_NONE;
-}
-nu_val *_nu_lt_num(nu_num *l, nu_num *r)
+const nu_bool *_nu_lt_bool(const nu_bool *l, const nu_bool *r)
 {
     return nu_literal_bool[l->data < r->data];
 }
-nu_val *_nu_lt_str(nu_val *l, nu_val *r)
+const nu_bool *_nu_lt_num(const nu_num *l, const nu_num *r)
 {
-    return NU_NONE;
+    return nu_literal_bool[l->data < r->data];
 }
-nu_val *_nu_lt_fn(nu_val *l, nu_val *r)
+const nu_bool *_nu_lt_str(const nu_str *l, const nu_str *r)
 {
-    return NU_NONE;
+    return NU_FALSE; // TODO: implement this
 }
-nu_val *_nu_lt_arr(nu_val *l, nu_val *r)
+const nu_bool *_nu_lt_fn(const nu_fn *l, const nu_fn *r)
 {
-    return NU_NONE;
+    return NU_FALSE;
 }
-nu_val *_nu_lt_obj(nu_val *l, nu_val *r)
+const nu_bool *_nu_lt_arr(const nu_arr *l, const nu_arr *r)
 {
-    return NU_NONE;
+    return nu_literal_bool[l->len < r->len];
 }
-nu_val *_nu_lt_thr(nu_val *l, nu_val *r)
+const nu_bool *_nu_lt_obj(const nu_obj *l, const nu_obj *r)
 {
-    return NU_NONE;
+    return nu_literal_bool[l->len < r->len];
+}
+const nu_bool *_nu_lt_thr(const nu_val *l, const nu_val *r)
+{
+    return NU_FALSE;
 }
 
-nu_oper_t _nu_lt_ptr[8] = {
-    (nu_oper_t)nu_oper_none,
-    (nu_oper_t)_nu_lt_bool,
-    (nu_oper_t)_nu_lt_num,
-    (nu_oper_t)_nu_lt_str,
-    (nu_oper_t)_nu_lt_fn,
-    (nu_oper_t)_nu_lt_arr,
-    (nu_oper_t)_nu_lt_obj,
-    (nu_oper_t)_nu_lt_thr};
-nu_val *nu_lt(nu_val *l, nu_val *r)
+nu_cmpr_t _nu_lt_ptr[8] = {
+    (nu_cmpr_t)nu_oper_none,
+    (nu_cmpr_t)_nu_lt_bool,
+    (nu_cmpr_t)_nu_lt_num,
+    (nu_cmpr_t)_nu_lt_str,
+    (nu_cmpr_t)_nu_lt_fn,
+    (nu_cmpr_t)_nu_lt_arr,
+    (nu_cmpr_t)_nu_lt_obj,
+    (nu_cmpr_t)_nu_lt_thr};
+
+const nu_bool *nu_lt(const nu_val *l, const nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_lt_ptr[l->type](l, r);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_val *_nu_le_bool(nu_bool *l, nu_bool *r)
+const nu_bool *_nu_le_bool(const nu_bool *l, const nu_bool *r)
 {
-    return NU_NONE;
+    return nu_literal_bool[l->data < r->data];
 }
-nu_val *_nu_le_num(nu_num *l, nu_num *r)
+const nu_bool *_nu_le_num(const nu_num *l, const nu_num *r)
 {
     return nu_literal_bool[l->data <= r->data];
 }
-nu_val *_nu_le_str(nu_val *l, nu_val *r)
+const nu_bool *_nu_le_str(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_le_fn(nu_val *l, nu_val *r)
+const nu_bool *_nu_le_fn(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_le_arr(nu_val *l, nu_val *r)
+const nu_bool *_nu_le_arr(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_le_obj(nu_val *l, nu_val *r)
+const nu_bool *_nu_le_obj(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_le_thr(nu_val *l, nu_val *r)
+const nu_bool *_nu_le_thr(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
 
-nu_oper_t _nu_le_ptr[8] = {
-    (nu_oper_t)nu_oper_none,
-    (nu_oper_t)_nu_le_bool,
-    (nu_oper_t)_nu_le_num,
-    (nu_oper_t)_nu_le_str,
-    (nu_oper_t)_nu_le_fn,
-    (nu_oper_t)_nu_le_arr,
-    (nu_oper_t)_nu_le_obj,
-    (nu_oper_t)_nu_le_thr};
+nu_cmpr_t _nu_le_ptr[8] = {
+    (nu_cmpr_t)nu_oper_none,
+    (nu_cmpr_t)_nu_le_bool,
+    (nu_cmpr_t)_nu_le_num,
+    (nu_cmpr_t)_nu_le_str,
+    (nu_cmpr_t)_nu_le_fn,
+    (nu_cmpr_t)_nu_le_arr,
+    (nu_cmpr_t)_nu_le_obj,
+    (nu_cmpr_t)_nu_le_thr};
 
-nu_val *nu_le(nu_val *l, nu_val *r)
+const nu_bool *nu_le(const nu_val *l, const nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_le_ptr[l->type](l, r);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_val *_nu_eq_bool(nu_bool *l, nu_bool *r)
+const nu_bool *_nu_eq_bool(const nu_bool *l, const nu_bool *r)
 {
     return nu_literal_bool[l->data == r->data];
 }
-nu_val *_nu_eq_num(nu_num *l, nu_num *r)
+const nu_bool *_nu_eq_num(const nu_num *l, const nu_num *r)
 {
     return nu_literal_bool[l->data == r->data];
 }
-nu_val *_nu_eq_str(nu_str *l, nu_str *r)
+const nu_bool *_nu_eq_str(const nu_str *l, const nu_str *r)
 {
-    if (l->len != r->len)
-        return nu_literal_bool[false];
+    if (l->type != r->type || l->len != r->len)
+    {
+        return NU_FALSE;
+    }
     size_t i = 0;
     for (i; i < l->len; ++i)
     {
+        if (l->data[i] != r->data[i])
+        {
+            return NU_FALSE;
+        }
     }
-    return NU_NONE;
+    return NU_TRUE;
 }
-nu_val *_nu_eq_fn(nu_val *l, nu_val *r)
+const nu_bool *_nu_eq_fn(const nu_fn *l, const nu_fn *r)
 {
-    return NU_NONE;
+    return nu_literal_bool[l == r];
 }
-nu_val *_nu_eq_arr(nu_val *l, nu_val *r)
+const nu_bool *_nu_eq_arr(const nu_arr *l, const nu_arr *r)
 {
-    return NU_NONE;
-}
-nu_val *_nu_eq_obj(nu_val *l, nu_val *r)
-{
-    return NU_NONE;
-}
-nu_val *_nu_eq_thr(nu_val *l, nu_val *r)
-{
-    return NU_NONE;
-}
-
-nu_oper_t _nu_eq_ptr[8] = {
-    (nu_oper_t)nu_oper_none,
-    (nu_oper_t)_nu_eq_bool,
-    (nu_oper_t)_nu_eq_num,
-    (nu_oper_t)_nu_eq_str,
-    (nu_oper_t)_nu_eq_fn,
-    (nu_oper_t)_nu_eq_arr,
-    (nu_oper_t)_nu_eq_obj,
-    (nu_oper_t)_nu_eq_thr};
-
-nu_val *nu_eq(nu_val *l, nu_val *r)
-{
-    if (r == NU_NONE)
+    if (l->type != r->type || l->len != r->len)
     {
-        return NU_NONE;
+        return NU_FALSE;
     }
+    size_t i = 0;
+    for (i; i < l->len; ++i)
+    {
+        if (!nu_eq(l->data[i], r->data[i]))
+        {
+            return NU_FALSE;
+        }
+    }
+    return NU_TRUE;
+}
+const nu_bool *_nu_eq_obj(const nu_obj *l, const nu_obj *r)
+{
+    if (l->type != r->type || l->len != r->len)
+    {
+        return NU_FALSE;
+    }
+    size_t i = 0;
+    for (i; i < l->len; ++i)
+    {
+        // TODO: implement
+    }
+    return NU_TRUE;
+}
+const nu_bool *_nu_eq_thr(const nu_thr *l, const nu_thr *r)
+{
+    return nu_literal_bool[l == r];
+}
+
+nu_cmpr_t _nu_eq_ptr[8] = {
+    (nu_cmpr_t)nu_oper_none,
+    (nu_cmpr_t)_nu_eq_bool,
+    (nu_cmpr_t)_nu_eq_num,
+    (nu_cmpr_t)_nu_eq_str,
+    (nu_cmpr_t)_nu_eq_fn,
+    (nu_cmpr_t)_nu_eq_arr,
+    (nu_cmpr_t)_nu_eq_obj,
+    (nu_cmpr_t)_nu_eq_thr};
+
+const nu_bool *nu_eq(const nu_val *l, const nu_val *r)
+{
     return _nu_eq_ptr[l->type](l, r);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_val *_nu_ne_bool(nu_bool *l, nu_bool *r)
+const nu_bool *_nu_ne_bool(const nu_bool *l, const nu_bool *r)
 {
     return nu_literal_bool[l->data != r->data];
 }
-nu_val *_nu_ne_num(nu_num *l, nu_num *r)
+const nu_bool *_nu_ne_num(const nu_num *l, const nu_num *r)
 {
     return nu_literal_bool[l->data != r->data];
 }
-nu_val *_nu_ne_str(nu_val *l, nu_val *r)
+const nu_bool *_nu_ne_str(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ne_fn(nu_val *l, nu_val *r)
+const nu_bool *_nu_ne_fn(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ne_arr(nu_val *l, nu_val *r)
+const nu_bool *_nu_ne_arr(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ne_obj(nu_val *l, nu_val *r)
+const nu_bool *_nu_ne_obj(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ne_thr(nu_val *l, nu_val *r)
+const nu_bool *_nu_ne_thr(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
 
-nu_oper_t _nu_ne_ptr[8] = {
-    (nu_oper_t)nu_oper_none,
-    (nu_oper_t)_nu_ne_bool,
-    (nu_oper_t)_nu_ne_num,
-    (nu_oper_t)_nu_ne_str,
-    (nu_oper_t)_nu_ne_fn,
-    (nu_oper_t)_nu_ne_arr,
-    (nu_oper_t)_nu_ne_obj,
-    (nu_oper_t)_nu_ne_thr};
+nu_cmpr_t _nu_ne_ptr[8] = {
+    (nu_cmpr_t)nu_oper_none,
+    (nu_cmpr_t)_nu_ne_bool,
+    (nu_cmpr_t)_nu_ne_num,
+    (nu_cmpr_t)_nu_ne_str,
+    (nu_cmpr_t)_nu_ne_fn,
+    (nu_cmpr_t)_nu_ne_arr,
+    (nu_cmpr_t)_nu_ne_obj,
+    (nu_cmpr_t)_nu_ne_thr};
 
-nu_val *nu_ne(nu_val *l, nu_val *r)
+const nu_bool *nu_ne(nu_val *l, nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_ne_ptr[l->type](l, r);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_val *_nu_ge_bool(nu_bool *l, nu_bool *r)
+const nu_bool *_nu_ge_bool(const nu_bool *l, const nu_bool *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ge_num(nu_num *l, nu_num *r)
+const nu_bool *_nu_ge_num(const nu_num *l, const nu_num *r)
 {
     return nu_literal_bool[l->data >= r->data];
 }
-nu_val *_nu_ge_str(nu_val *l, nu_val *r)
+const nu_bool *_nu_ge_str(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ge_fn(nu_val *l, nu_val *r)
+const nu_bool *_nu_ge_fn(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ge_arr(nu_val *l, nu_val *r)
+const nu_bool *_nu_ge_arr(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ge_obj(nu_val *l, nu_val *r)
+const nu_bool *_nu_ge_obj(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_ge_thr(nu_val *l, nu_val *r)
+const nu_bool *_nu_ge_thr(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
 
-nu_oper_t _nu_ge_ptr[8] = {
-    (nu_oper_t)nu_oper_none,
-    (nu_oper_t)_nu_ge_bool,
-    (nu_oper_t)_nu_ge_num,
-    (nu_oper_t)_nu_ge_str,
-    (nu_oper_t)_nu_ge_fn,
-    (nu_oper_t)_nu_ge_arr,
-    (nu_oper_t)_nu_ge_obj,
-    (nu_oper_t)_nu_ge_thr};
+nu_cmpr_t _nu_ge_ptr[8] = {
+    (nu_cmpr_t)nu_oper_none,
+    (nu_cmpr_t)_nu_ge_bool,
+    (nu_cmpr_t)_nu_ge_num,
+    (nu_cmpr_t)_nu_ge_str,
+    (nu_cmpr_t)_nu_ge_fn,
+    (nu_cmpr_t)_nu_ge_arr,
+    (nu_cmpr_t)_nu_ge_obj,
+    (nu_cmpr_t)_nu_ge_thr};
 
-nu_val *nu_ge(nu_val *l, nu_val *r)
+const nu_bool *nu_ge(const nu_val *l, const nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_ge_ptr[l->type](l, r);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_val *_nu_gt_bool(nu_bool *l, nu_bool *r)
+const nu_bool *_nu_gt_bool(const nu_bool *l, const nu_bool *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_gt_num(nu_num *l, nu_num *r)
+const nu_bool *_nu_gt_num(const nu_num *l, const nu_num *r)
 {
     return nu_literal_bool[l->data > r->data];
 }
-nu_val *_nu_gt_str(nu_val *l, nu_val *r)
+const nu_bool *_nu_gt_str(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_gt_fn(nu_val *l, nu_val *r)
+const nu_bool *_nu_gt_fn(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_gt_arr(nu_val *l, nu_val *r)
+const nu_bool *_nu_gt_arr(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_gt_obj(nu_val *l, nu_val *r)
+const nu_bool *_nu_gt_obj(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
-nu_val *_nu_gt_thr(nu_val *l, nu_val *r)
+const nu_bool *_nu_gt_thr(const nu_val *l, const nu_val *r)
 {
     return NU_NONE;
 }
 
-nu_oper_t _nu_gt_ptr[8] = {
-    (nu_oper_t)nu_oper_none,
-    (nu_oper_t)_nu_gt_bool,
-    (nu_oper_t)_nu_gt_num,
-    (nu_oper_t)_nu_gt_str,
-    (nu_oper_t)_nu_gt_fn,
-    (nu_oper_t)_nu_gt_arr,
-    (nu_oper_t)_nu_gt_obj,
-    (nu_oper_t)_nu_gt_thr};
+nu_cmpr_t _nu_gt_ptr[8] = {
+    (nu_cmpr_t)nu_oper_none,
+    (nu_cmpr_t)_nu_gt_bool,
+    (nu_cmpr_t)_nu_gt_num,
+    (nu_cmpr_t)_nu_gt_str,
+    (nu_cmpr_t)_nu_gt_fn,
+    (nu_cmpr_t)_nu_gt_arr,
+    (nu_cmpr_t)_nu_gt_obj,
+    (nu_cmpr_t)_nu_gt_thr};
 
-nu_val *nu_gt(nu_val *l, nu_val *r)
+const nu_bool *nu_gt(const nu_val *l, const nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_gt_ptr[l->type](l, r);
+}
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+nu_cmpr_t _nu_cmp_ptr[8] = {
+    (nu_cmpr_t)nu_lt,
+    (nu_cmpr_t)nu_le,
+    (nu_cmpr_t)nu_eq,
+    (nu_cmpr_t)nu_ne,
+    (nu_cmpr_t)nu_ge,
+    (nu_cmpr_t)nu_gt};
+
+const nu_bool *nu_cmp(const nu_val *l, const nu_val *r, uint8_t how)
+{
+    _nu_cmp_ptr[how](l, r);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -700,12 +719,8 @@ const nu_oper_t _nu_add_ptr[8] = {
     (nu_oper_t)nu_oper_none,
     (nu_oper_t)nu_oper_none};
 
-nu_val *nu_add(nu_val *l, nu_val *r)
+nu_val *nu_add(nu_val *l, const nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_add_ptr[l->type](l, r);
 }
 
@@ -738,10 +753,6 @@ const nu_oper_t _nu_sub_ptr[8] = {
 
 nu_val *nu_sub(nu_val *l, nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_sub_ptr[l->type](l, r);
 }
 
@@ -774,10 +785,6 @@ const nu_oper_t _nu_mul_ptr[8] = {
 
 nu_val *nu_mul(nu_val *l, nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_mul_ptr[l->type](l, r);
 }
 
@@ -810,10 +817,6 @@ const nu_oper_t _nu_div_ptr[8] = {
 
 nu_val *nu_div(nu_val *l, nu_val *r)
 {
-    if (r == NU_NONE)
-    {
-        return NU_NONE;
-    }
     return _nu_div_ptr[l->type](l, r);
 }
 

@@ -19,20 +19,26 @@ extern "C" {
 #define NU_64_BIT
 #define NU_BASE_TYPE_BITS 3
 #define NU_BASE_REFS_BITS 61
+#define NU_REGISTERS 32
+#define NU_NULLREG 255
 #define NU_REFS_MAX 2305843009213693951
 typedef double num_t;
 typedef long i_num_t;
 #define NU_FLP_FMT "%lf"
 #define NU_INT_FMT "%lld"
+#define NU_SZE_FMT "%llu"
 #else
 #define NU_32_BIT
 #define NU_BASE_TYPE_BITS 3
 #define NU_BASE_REFS_BITS 29
+#define NU_REGISTERS 16
+#define NU_NULLREG 255
 #define NU_REFS_MAX 536870911
 typedef float num_t;
 typedef int i_num_t;
 #define NU_FLP_FMT "%f"
 #define NU_INT_FMT "%ld"
+#define NU_SZE_FMT "%lu"
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------------------
