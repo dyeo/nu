@@ -70,7 +70,7 @@ inline static char *utfdup(const char *str)
 {
     size_t blen, clen;
     utfdlen(str, &blen, &clen);
-    char *dest = nu_calloc(char, ++blen);
+    char *dest = nu_calloc(++blen, char);
     dest[blen-1] = NULL;
     strncpy(dest, str, blen-1);
     return dest;

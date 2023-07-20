@@ -49,21 +49,21 @@ typedef const char *str_t;
 #define str(s) #s
 
 #define nu_malloc(TYPE) (TYPE *)malloc(sizeof(TYPE))
-#define nu_calloc(TYPE, COUNT) (TYPE *)calloc(COUNT, sizeof(TYPE))
-#define nu_realloc(TYPE, PTR, COUNT) (TYPE *)realloc(PTR, sizeof(TYPE) * (COUNT))
-
-#define nu_copy(TYPE, DST, SRC, SIZE) (TYPE *)memcpy(DST, SRC, SIZE)
+#define nu_calloc(COUNT, TYPE) (TYPE *)calloc(COUNT, sizeof(TYPE))
+#define nu_realloc(PTR, COUNT, TYPE) (TYPE *)realloc(PTR, sizeof(TYPE) * (COUNT))
+#define nu_copy(DST, SRC, COUNT, TYPE) (TYPE *)memcpy(DST, SRC, sizeof(TYPE) * (COUNT))
+#define nu_move(DST, SRC, COUNT, TYPE) (TYPE *)memmove(DST, SRC, sizeof(TYPE) * (COUNT))
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-#define NU_NEW_FPTR(NAME, RESULT, ...) typedef RESULT (*NAME)( __VA_ARGS__ )
+#define NU_FPTR_NEW(NAME, RESULT, ...) typedef RESULT (*NAME)( __VA_ARGS__ )
 
 #define NU_FPTR(RESULT, ...) RESULT (*)( __VA_ARGS__ )
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-#define NU_LOG(MESSAGE) { fprintf(stdout, "LOG: %s\n", MESSAGE); }
-#define NU_ERR(MESSAGE) {  fprintf(stderr, "ERR: %s\n", MESSAGE); }
+#define NU_LOG(MESSAGE) do { fprintf(stdout, "LOG: %s\n", MESSAGE); } while(0)
+#define NU_ERR(MESSAGE) do { fprintf(stderr, "ERR: %s\n", MESSAGE); } while(0)
 #ifndef NDEBUG
 #define NU_ASSERT(EXPRESSION, MESSAGE) do { if (!(EXPRESSION)) { fprintf(stderr, "ERR: " __FILE__ ":" xstr(__LINE__) ": ASSERT: " xstr(#EXPRESSION) " is false: %s\n", MESSAGE); exit(1); } } while(0)
 #else

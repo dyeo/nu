@@ -17,14 +17,14 @@ extern "C" {
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-#define NU_T_NONE 0
-#define NU_T_BOOL 1
-#define NU_T_NUM  2
-#define NU_T_STR  3
-#define NU_T_FN   4
-#define NU_T_ARR  5
-#define NU_T_OBJ  6
-#define NU_T_THR  7
+#define NU_NONE_T 0
+#define NU_BOOL_T 1
+#define NU_NUM_T  2
+#define NU_STR_T  3
+#define NU_FN_T   4
+#define NU_ARR_T  5
+#define NU_OBJ_T  6
+#define NU_THR_T  7
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -34,10 +34,14 @@ extern "C" {
 #define NU_VAL_HEADER size_t type : NU_BASE_TYPE_BITS, refs : NU_BASE_REFS_BITS
 #define NU_BASE_HEADER union { struct { NU_VAL_HEADER; }; nu_val base; }
 
+// --------------------------------------------------------------------------------------------------------------------------------
+
 typedef struct nu_val
 {
     NU_VAL_HEADER;
 } nu_val;
+
+// --------------------------------------------------------------------------------------------------------------------------------
 
 typedef struct nu_bool
 {
@@ -45,11 +49,19 @@ typedef struct nu_bool
     bool data;
 } nu_bool;
 
+#define NU_BOOL_INIT(V, DATA) do { V->type = NU_BOOL_T; V->refs = 0u; V->data = (DATA); } while (0)
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
 typedef struct nu_num
 {
     NU_BASE_HEADER;
     num_t data;
 } nu_num;
+
+#define NU_NUM_INIT(V, DATA) do { V->type = NU_NUM_T; V->refs = 0u; V->data = (DATA); } while (0)
+
+// --------------------------------------------------------------------------------------------------------------------------------
 
 typedef struct nu_str
 {
@@ -59,10 +71,18 @@ typedef struct nu_str
     str_t data;
 } nu_str;
 
+#define NU_STR_INIT(V, LEN, CAP, DATA) do { V->type = NU_STR_T; V->refs = 0u; V->len = (LEN); V->cap = (CAP); V->data = (DATA); } while (0)
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
 typedef struct nu_fn
 {
     NU_BASE_HEADER;
 } nu_fn;
+
+#define NU_FN_INIT(V) do { V->type = NU_FN_T; V->refs = 0u; } while (0)
+
+// --------------------------------------------------------------------------------------------------------------------------------
 
 typedef struct nu_arr
 {
@@ -72,38 +92,49 @@ typedef struct nu_arr
     nu_val **data;
 } nu_arr;
 
+#define NU_ARR_INIT(V, LEN, CAP, DATA) do { V->type = NU_ARR_T; V->refs = 0u; V->len = (LEN); V->cap = (CAP); V->data = (DATA); } while (0)
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
 typedef struct nu_obj
 {
     NU_BASE_HEADER;
-    size_t len; // # of nodes
-    rb_tree *data;
+    size_t len; // tree length
+    rb_tree *keys; // keys tree
+    rb_tree *vals; // vals tree
 } nu_obj;
+
+#define NU_OBJ_INIT(V, LEN, KEYS, VALS) do { V->type = NU_OBJ_T; V->refs = 0u; V->len = (LEN); V->keys = (KEYS); V->vals = (VALS); } while (0)
+
+// --------------------------------------------------------------------------------------------------------------------------------
 
 typedef struct nu_thr
 {
     NU_BASE_HEADER;
+    nu_fn *fn;
 } nu_thr;
 
+#define NU_THR_INIT(V, FN) do { V->type = NU_THR_T; V->refs = 0u; V->fn = (FN); } while (0)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Function Pointer Definitions
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_NEW_FPTR(nu_cmpr_t, const nu_bool *, const nu_val *, const nu_val *);
-NU_NEW_FPTR(nu_oper_t, nu_val *, nu_val *, const nu_val *);
+NU_FPTR_NEW(nu_cmpr_t, const nu_bool *, const nu_val *, const nu_val *);
+NU_FPTR_NEW(nu_oper_t, nu_val *, nu_val *, const nu_val *);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
-// Constants
-// nu.c
+// Literals
+// nu.h
 // --------------------------------------------------------------------------------------------------------------------------------
 
-const extern nu_val nu_none;
-const extern nu_bool nu_true;
-const extern nu_bool nu_false;
-const extern nu_num nu_zero;
-const extern nu_num nu_one;
-const extern nu_str nu_empty;
+static const nu_val nu_none = {NU_NONE_T, 0ul};
+static const nu_bool nu_true = {NU_BOOL_T, 0ul, true};
+static const nu_bool nu_false = {NU_BOOL_T, 0ul, false};
+static const nu_num nu_zero = {NU_NUM_T, 0ul, 0.0};
+static const nu_num nu_one = {NU_NUM_T, 0ul, 1.0};
+static const nu_str nu_empty = {NU_STR_T, 0ul, 0, 1, ""};
 
 #define NU_NONE (&nu_none)
 #define NU_TRUE (&nu_true)
@@ -112,7 +143,7 @@ const extern nu_str nu_empty;
 #define NU_ONE (&nu_one)
 #define NU_EMPTY (&nu_empty)
 
-const extern nu_bool *nu_literal_bool[2];
+static const nu_bool *nu_literal_bool[2] = {NU_FALSE, NU_TRUE};
 
 inline static const nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return NU_NONE; }
 
@@ -145,7 +176,7 @@ nu_num *nu_len(const nu_val *val);
 nu_num *nu_cap(const nu_val *val);
 
 nu_num *nu_hash(const nu_val *val);
-str_t nu_c_repr(const nu_val *val);
+str_t nu_repr_c(const nu_val *val);
 
 bool nu_set_val(nu_val *cnt, nu_val *key, nu_val *val);
 nu_val *nu_get_val(nu_val *cnt, nu_val *key);
@@ -174,14 +205,14 @@ nu_val *nu_mul(nu_val *lhs, const nu_val *rhs);
 nu_val *nu_div(nu_val *lhs, const nu_val *rhs);
 nu_val *nu_mod(nu_val *lhs, const nu_val *rhs);
 
-inline static bool nu_is_none(nu_val *val) { return val->type == NU_T_NONE; }
-inline static bool nu_is_bool(nu_val *val) { return val->type == NU_T_BOOL; }
-inline static bool nu_is_num(nu_val *val) { return val->type == NU_T_NUM; }
-inline static bool nu_is_str(nu_val *val) { return val->type == NU_T_STR; }
-inline static bool nu_is_fn(nu_val *val) { return val->type == NU_T_FN; }
-inline static bool nu_is_arr(nu_val *val) { return val->type == NU_T_ARR; }
-inline static bool nu_is_obj(nu_val *val) { return val->type == NU_T_OBJ; }
-inline static bool nu_is_thr(nu_val *val) { return val->type == NU_T_THR; }
+inline static bool nu_is_none(nu_val *val) { return val->type == NU_NONE_T; }
+inline static bool nu_is_bool(nu_val *val) { return val->type == NU_BOOL_T; }
+inline static bool nu_is_num(nu_val *val) { return val->type == NU_NUM_T; }
+inline static bool nu_is_str(nu_val *val) { return val->type == NU_STR_T; }
+inline static bool nu_is_fn(nu_val *val) { return val->type == NU_FN_T; }
+inline static bool nu_is_arr(nu_val *val) { return val->type == NU_ARR_T; }
+inline static bool nu_is_obj(nu_val *val) { return val->type == NU_OBJ_T; }
+inline static bool nu_is_thr(nu_val *val) { return val->type == NU_THR_T; }
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -201,11 +232,11 @@ inline static bool nu_decref(nu_val *val) { if (nu_is_literal(val)) { return fal
 // nubool.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_bool *nu_new_bool(bool data);
-void nu_free_bool(nu_bool *bol);
+nu_bool *nu_bool_new(bool data);
+void nu_bool_free(nu_bool *bol);
 
-bool nu_to_bool_c(nu_val *val);
-nu_bool *nu_to_bool(nu_val *val);
+bool nu_bool_get_c(nu_val *val);
+nu_bool *nu_bool_get(nu_val *val);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -213,22 +244,22 @@ nu_bool *nu_to_bool(nu_val *val);
 // nunum.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_num *nu_new_num(num_t data);
-void nu_free_num(nu_num *num);
+nu_num *nu_num_new(num_t data);
+void nu_num_free(nu_num *num);
 
-uint8_t nu_c_to_uint8(nu_val *val);
-int8_t nu_c_to_int8(nu_val *val);
-uint16_t nu_c_to_uint16(nu_val *val);
-int16_t nu_c_to_int16(nu_val *val);
-uint32_t nu_c_to_uint32(nu_val *val);
-int32_t nu_c_to_int32(nu_val *val);
-uint64_t nu_c_to_uint64(nu_val *val);
-int64_t nu_c_to_int64(nu_val *val);
-size_t nu_c_to_size_t(nu_val *val);
-float nu_c_to_float(nu_val *val);
-double nu_c_to_double(nu_val *val);
+uint8_t nu_uint8_get_c(nu_val *val);
+int8_t nu_int8_get_c(nu_val *val);
+uint16_t nu_uint16_get_c(nu_val *val);
+int16_t nu_int16_get_c(nu_val *val);
+uint32_t nu_uint32_get_c(nu_val *val);
+int32_t nu_int32_get_c(nu_val *val);
+uint64_t nu_uint64_get_c(nu_val *val);
+int64_t nu_int64_get_c(nu_val *val);
+size_t nu_size_t_get_c(nu_val *val);
+float nu_float_get_c(nu_val *val);
+double nu_double_get_c(nu_val *val);
 
-nu_num *nu_to_num(nu_val *val);
+nu_num *nu_num_get(nu_val *val);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -236,10 +267,18 @@ nu_num *nu_to_num(nu_val *val);
 // nustr.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_str *nu_new_str(str_t data);
-void nu_free_str(nu_str *str);
+nu_str *nu_str_new(str_t data);
+void nu_str_free(nu_str *str);
 
-nu_str *nu_get_val_str(nu_str *str, nu_num *key);
+nu_str *nu_str_get_val(nu_str *str, nu_num *key);
+
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Function Methods
+// nufn.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+// TODO: implement
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -247,26 +286,28 @@ nu_str *nu_get_val_str(nu_str *str, nu_num *key);
 // nuarr.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_arr *nu_new_arr(size_t cap);
-void nu_free_arr(nu_arr *arr);
+nu_arr *nu_arr_new(size_t cap);
+void nu_arr_free(nu_arr *arr);
 
-inline static nu_num *nu_len_arr(nu_arr *arr) { return nu_new_num((num_t)arr->len); }
-inline static nu_num *nu_cap_arr(nu_arr *arr) { return nu_new_num((num_t)arr->cap); }
+inline static nu_num *nu_arr_len(nu_arr *arr) { return nu_num_new((num_t)arr->len); }
+inline static nu_num *nu_arr_cap(nu_arr *arr) { return nu_num_new((num_t)arr->cap); }
 
-bool nu_set_val_arr(nu_arr *arr, nu_num *idx, nu_val *val);
-nu_val *nu_get_val_arr(nu_arr *arr, nu_num *idx);
-bool nu_add_val_arr(nu_arr *arr, nu_num *idx, nu_val *val);
-nu_val *nu_del_val_arr(nu_arr *arr, nu_num *idx);
+bool nu_arr_set_val(nu_arr *arr, nu_num *idx, nu_val *val);
+nu_val *nu_arr_get_val(nu_arr *arr, nu_num *idx);
+bool nu_arr_add_val(nu_arr *arr, nu_num *idx, nu_val *val);
+nu_val *nu_arr_del_val(nu_arr *arr, nu_num *idx);
 
-bool nu_c_set_val_arr(nu_arr *arr, size_t i, nu_val *val);
-nu_val *nu_c_get_val_arr(nu_arr *arr, size_t i);
-bool nu_c_add_val_arr(nu_arr *arr, size_t i, nu_val *val);
-nu_val *nu_c_del_val_arr(nu_arr *arr, size_t i);
+bool nu_arr_set_val_c(nu_arr *arr, size_t i, nu_val *val);
+nu_val *nu_arr_get_val_c(nu_arr *arr, size_t i);
+bool nu_arr_add_val_c(nu_arr *arr, size_t i, nu_val *val);
+nu_val *nu_arr_del_val_c(nu_arr *arr, size_t i);
 
-inline static void nu_push_val_arr(nu_arr *arr, nu_val *val) { nu_c_add_val_arr(arr, arr->len, val); }
-inline static nu_val *nu_pop_val_arr(nu_arr *arr) { return nu_c_del_val_arr(arr, arr->len - 1); }
-inline static void nu_enqueue_val_arr(nu_arr *arr, nu_val *val) { nu_c_add_val_arr(arr, 0, val); }
-inline static nu_val *nu_dequeue_val_arr(nu_arr *arr) { return nu_c_del_val_arr(arr, arr->len - 1); }
+inline static void nu_arr_push_val(nu_arr *arr, nu_val *val) { nu_arr_add_val_c(arr, arr->len, val); }
+inline static nu_val *nu_arr_pop_val(nu_arr *arr) { return nu_arr_del_val_c(arr, arr->len - 1); }
+inline static void nu_arr_enq_val(nu_arr *arr, nu_val *val) { nu_arr_add_val_c(arr, 0, val); }
+inline static nu_val *nu_arr_deq_val(nu_arr *arr) { return nu_arr_del_val_c(arr, arr->len - 1); }
+
+void nu_arr_clear(nu_obj *obj);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -274,27 +315,43 @@ inline static nu_val *nu_dequeue_val_arr(nu_arr *arr) { return nu_c_del_val_arr(
 // nuobj.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_obj *nu_new_obj();
-void nu_free_obj(nu_obj *obj);
+nu_obj *nu_obj_new();
+void nu_obj_free(nu_obj *obj);
 
-inline static nu_num *nu_len_obj(nu_obj *obj) { return nu_new_num((num_t)obj->len); }
-inline static nu_num *nu_cap_obj(nu_obj *arr) { return nu_new_num((num_t)SIZE_MAX); }
+inline static nu_num *nu_obj_len(nu_obj *obj) { return nu_num_new((num_t)obj->len); }
+inline static nu_num *nu_obj_cap(nu_obj *arr) { return nu_num_new((num_t)SIZE_MAX); }
 
-inline static size_t nu_c_len_obj(nu_obj *obj) { return obj->len; }
-inline static size_t nu_c_cap_obj(nu_obj *arr) { return SIZE_MAX; }
+inline static size_t nu_obj_len_c(nu_obj *obj) { return obj->len; }
+inline static size_t nu_obj_cap_c(nu_obj *arr) { return SIZE_MAX; }
 
-bool nu_set_val_obj(nu_obj *obj, nu_val *key, nu_val *val);
-nu_val *nu_get_val_obj(nu_obj *obj, nu_val *key);
-inline static bool nu_add_val_obj(nu_obj *obj, nu_val *key, nu_val *val) { return nu_set_val_obj(obj, key, val); }
-nu_val *nu_del_val_obj(nu_obj *obj, nu_val *key);
+bool nu_obj_set_val(nu_obj *obj, nu_val *key, nu_val *val);
+nu_val *nu_obj_get_val(nu_obj *obj, const nu_val *key);
+inline static bool nu_obj_add_val(nu_obj *obj, nu_val *key, nu_val *val) { return nu_obj_set_val(obj, key, val); }
+nu_val *nu_obj_del_val(nu_obj *obj, nu_val *key);
+
+size_t nu_obj_keys_c(nu_obj *obj, nu_val **keys);
+size_t nu_obj_vals_c(nu_obj *obj, nu_val **vals);
+
+nu_arr *nu_obj_keys(nu_obj *obj);
+nu_arr *nu_obj_vals(nu_obj *obj);
+
+void nu_obj_clear(nu_obj *obj);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
-// Miscellaneous Methods
+// Thread Methods
+// nuthr.c
+// --------------------------------------------------------------------------------------------------------------------------------
+
+// TODO: implement
+
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Misc Methods
 // numisc.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-inline static nu_str *nu_repr(const nu_val *val) { return nu_new_str(nu_c_repr(val)); }
+inline static nu_str *nu_repr(const nu_val *val) { return nu_str_new(nu_repr_c(val)); }
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -315,15 +372,16 @@ typedef struct nu_vm
     uint8_t *op; // opcodes
 
     uint8_t *opp; // current operation pointer
-    size_t ops; // operation size remaining
+    size_t opr; // operation length remaining
 } nu_vm;
 
-#define NU_VM_POP(VM, TYPE) (TYPE) nu_pop_bytes(&(VM->opp), &(VM->ops), sizeof(TYPE))
+#define NU_VM_POP(VM, TYPE) (TYPE) nu_pop_bytes(&(VM->opp), &(VM->opr), sizeof(TYPE))
 
-nu_vm *nu_new_vm();
-void nu_free_vm(nu_vm *vm);
+nu_vm *nu_vm_new();
+void nu_vm_free(nu_vm *vm);
 
 void nu_vm_add_op(nu_vm *vm, const uint8_t *op, const size_t len);
+void nu_vm_ins_op(nu_vm *vm, const uint8_t *op, const ptrdiff_t pos, const size_t len);
 
 void nu_vm_run(nu_vm *vm);
 
@@ -333,7 +391,7 @@ void nu_vm_run(nu_vm *vm);
 // nuvmops.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_NEW_FPTR(nu_op_fptr, void, nu_vm *);
+NU_FPTR_NEW(nu_op_fptr, void, nu_vm *);
 
 void nu_op_noop(nu_vm *vm);
 
@@ -364,8 +422,9 @@ void nu_op_getl(nu_vm *vm);
 void nu_op_delg(nu_vm *vm);
 void nu_op_dell(nu_vm *vm);
 
+
 // --------------------------------------------------------------------------------------------------------------------------------
-// Virtual Machine Operation Lookups
+// Virtual Machine Operation Lookups (Auto-Generated)
 // nuvmops.inl
 // --------------------------------------------------------------------------------------------------------------------------------
 

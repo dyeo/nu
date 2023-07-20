@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include <assert.h>
 
-const rb_node rb_nil = {black, &rb_nil, &rb_nil, &rb_nil, 0ul, NULL};
+const rb_node rb_nil = {black, RB_NIL, RB_NIL, RB_NIL, 0ul, NULL};
 
 rb_tree *rb_new_tree()
 {
 	rb_tree *r = (rb_tree *)malloc(sizeof(rb_tree));
 	assert(r != NULL);
-	r->root = &rb_nil;
+	r->root = RB_NIL;
 	return r;
 }
 
@@ -33,9 +33,9 @@ rb_node *rb_new_node(size_t key, void *val)
 {
 	rb_node *r = (rb_node *)malloc(sizeof(rb_node));
 	assert(r != NULL);
-	r->parent = &rb_nil;
-	r->left = &rb_nil;
-	r->right = &rb_nil;
+	r->parent = RB_NIL;
+	r->left = RB_NIL;
+	r->right = RB_NIL;
 	r->color = red;
 	r->key = key;
 	r->val = val;
@@ -68,7 +68,7 @@ void rb_free_node_iter(rb_node *node, rb_traverse_fptr fptr)
 
 rb_node *rb_min(rb_node *x)
 {
-	while (x->left != &rb_nil)
+	while (x->left != RB_NIL)
 	{
 		x = x->left;
 	}
@@ -77,7 +77,7 @@ rb_node *rb_min(rb_node *x)
 
 rb_node *rb_max(rb_node *x)
 {
-	while (x->right != &rb_nil)
+	while (x->right != RB_NIL)
 	{
 		x = x->right;
 	}
@@ -87,7 +87,7 @@ rb_node *rb_max(rb_node *x)
 rb_node *rb_search(rb_tree *t, size_t key)
 {
 	rb_node *curr = t->root;
-	while (curr != &rb_nil && key != curr->key)
+	while (curr != RB_NIL && key != curr->key)
 	{
 		curr = key < curr->key ? curr->left : curr->right;
 	}
@@ -96,12 +96,12 @@ rb_node *rb_search(rb_tree *t, size_t key)
 
 rb_node *rb_next(rb_node *x)
 {
-	if (x->right != &rb_nil)
+	if (x->right != RB_NIL)
 	{
 		return rb_min(x->right);
 	}
 	rb_node *y = x->parent;
-	while (y != &rb_nil && x == y->right)
+	while (y != RB_NIL && x == y->right)
 	{
 		x = y;
 		y = y->parent;
@@ -111,12 +111,12 @@ rb_node *rb_next(rb_node *x)
 
 rb_node *rb_prev(rb_node *x)
 {
-	if (x->left != &rb_nil)
+	if (x->left != RB_NIL)
 	{
 		return rb_max(x->left);
 	}
 	rb_node *y = x->parent;
-	while (y != &rb_nil && x == y->left)
+	while (y != RB_NIL && x == y->left)
 	{
 		x = y;
 		y = y->parent;
@@ -127,7 +127,7 @@ rb_node *rb_prev(rb_node *x)
 void rb_in_order(rb_tree *t, rb_traverse_fptr f)
 {
 	rb_node *curr = rb_min(t->root);
-	while (curr != &rb_nil)
+	while (curr != RB_NIL)
 	{
 		f(curr);
 		curr = rb_next(curr);
@@ -136,18 +136,18 @@ void rb_in_order(rb_tree *t, rb_traverse_fptr f)
 
 void rb_left_rotate(rb_tree *t, rb_node *x)
 {
-	if (x->right == &rb_nil)
+	if (x->right == RB_NIL)
 	{
 		return;
 	}
 	rb_node *y = x->right;
 	x->right = y->left;
-	if (y->left != &rb_nil)
+	if (y->left != RB_NIL)
 	{
 		y->left->parent = x;
 	}
 	y->parent = x->parent;
-	if (x->parent == &rb_nil)
+	if (x->parent == RB_NIL)
 	{
 		t->root = y;
 	}
@@ -165,18 +165,18 @@ void rb_left_rotate(rb_tree *t, rb_node *x)
 
 void rb_right_rotate(rb_tree *t, rb_node *x)
 {
-	if (x->right == &rb_nil)
+	if (x->right == RB_NIL)
 	{
 		return;
 	}
 	rb_node *y = x->left;
 	x->left = y->right;
-	if (y->right != &rb_nil)
+	if (y->right != RB_NIL)
 	{
 		y->right->parent = x;
 	}
 	y->parent = x->parent;
-	if (x->parent == &rb_nil)
+	if (x->parent == RB_NIL)
 	{
 		t->root = y;
 	}
@@ -194,9 +194,9 @@ void rb_right_rotate(rb_tree *t, rb_node *x)
 
 void rb_insert(rb_tree *t, rb_node *z)
 {
-	rb_node *y = &rb_nil;
+	rb_node *y = RB_NIL;
 	rb_node *x = t->root;
-	while (x != &rb_nil)
+	while (x != RB_NIL)
 	{
 		y = x;
 		if (z->key < x->key)
@@ -209,7 +209,7 @@ void rb_insert(rb_tree *t, rb_node *z)
 		}
 	}
 	z->parent = y;
-	if (y == &rb_nil)
+	if (y == RB_NIL)
 	{
 		t->root = z;
 	}
@@ -221,7 +221,7 @@ void rb_insert(rb_tree *t, rb_node *z)
 	{
 		y->right = z;
 	}
-	if (x != &rb_nil)
+	if (x != RB_NIL)
 	{
 		x->color = red;
 	}
@@ -280,7 +280,7 @@ rb_node *rb_delete(rb_tree *t, rb_node *z)
 {
 	rb_node *x;
 	rb_node *y;
-	if (z->left == &rb_nil || z->right == &rb_nil)
+	if (z->left == RB_NIL || z->right == RB_NIL)
 	{
 		y = z;
 	}
@@ -288,7 +288,7 @@ rb_node *rb_delete(rb_tree *t, rb_node *z)
 	{
 		y = rb_next(z);
 	}
-	if (y->left != &rb_nil)
+	if (y->left != RB_NIL)
 	{
 		x = y->left;
 	}
@@ -296,11 +296,11 @@ rb_node *rb_delete(rb_tree *t, rb_node *z)
 	{
 		x = y->right;
 	}
-	if (x->parent != &rb_nil)
+	if (x->parent != RB_NIL)
 	{
 		x->parent = y->parent;
 	}
-	if (y->parent == &rb_nil)
+	if (y->parent == RB_NIL)
 	{
 		t->root = x;
 	}

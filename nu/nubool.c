@@ -3,19 +3,17 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_bool *nu_new_bool(bool v)
+nu_bool *nu_bool_new(bool v)
 {
 	nu_bool *r = nu_malloc(nu_bool);
 	assert(r != NULL);
-	r->type = NU_T_BOOL;
-	r->refs = 0u;
-	r->data = v;
+	NU_BOOL_INIT(r, v);
 	return r;
 }
 
-void nu_free_bool(nu_bool *o)
+void nu_bool_free(nu_bool *o)
 {
-	o->type = NU_T_NONE;
+	o->type = NU_NONE_T;
 	o->refs = 0;
 	o->data = 0;
 	free(o);
@@ -23,60 +21,60 @@ void nu_free_bool(nu_bool *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_NEW_FPTR(nu_to_bool_fptr, bool, nu_val *);
+NU_FPTR_NEW(nu_to_bool_fptr, bool, nu_val *);
 
-bool _nu_to_bool_none(nu_val *o)
+bool _nu_none_bool_get(nu_val *o)
 {
 	return 0;
 }
-bool _nu_to_bool_bool(nu_bool *o)
+bool _nu_bool_bool_get(nu_bool *o)
 {
 	return o->data;
 }
-bool _nu_to_bool_num(nu_num *o)
+bool _nu_num_bool_get(nu_num *o)
 {
 	return o->data != 0.0;
 }
-bool _nu_to_bool_str(nu_str *o)
+bool _nu_str_bool_get(nu_str *o)
 {
 	return o->len > 0;
 }
-bool _nu_to_bool_fn(nu_fn *o)
+bool _nu_fn_bool_get(nu_fn *o)
 {
 	return 0;
 }
-bool _nu_to_bool_arr(nu_arr *o)
+bool _nu_arr_bool_get(nu_arr *o)
 {
 	return o->len > 0;
 }
-bool _nu_to_bool_obj(nu_obj *o)
+bool _nu_obj_bool_get(nu_obj *o)
 {
 	return o->len > 0;
 }
-bool _nu_to_bool_thr(nu_thr *o)
+bool _nu_thr_bool_get(nu_thr *o)
 {
 	return 0;
 }
 
-bool (*_nu_to_bool_ptr[8])(nu_val *o) = {
-	(nu_to_bool_fptr)_nu_to_bool_none,
-	(nu_to_bool_fptr)_nu_to_bool_bool,
-	(nu_to_bool_fptr)_nu_to_bool_num,
-	(nu_to_bool_fptr)_nu_to_bool_str,
-	(nu_to_bool_fptr)_nu_to_bool_fn,
-	(nu_to_bool_fptr)_nu_to_bool_arr,
-	(nu_to_bool_fptr)_nu_to_bool_obj,
-	(nu_to_bool_fptr)_nu_to_bool_thr
+bool (*_nu_bool_get_ptr[8])(nu_val *o) = {
+	(nu_to_bool_fptr)_nu_none_bool_get,
+	(nu_to_bool_fptr)_nu_bool_bool_get,
+	(nu_to_bool_fptr)_nu_num_bool_get,
+	(nu_to_bool_fptr)_nu_str_bool_get,
+	(nu_to_bool_fptr)_nu_fn_bool_get,
+	(nu_to_bool_fptr)_nu_arr_bool_get,
+	(nu_to_bool_fptr)_nu_obj_bool_get,
+	(nu_to_bool_fptr)_nu_thr_bool_get
 };
 
-bool nu_to_bool_c(nu_val *b)
+bool nu_bool_get_c(nu_val *b)
 {
-	return _nu_to_bool_ptr[b->type](b);
+	return _nu_bool_get_ptr[b->type](b);
 }
 
-nu_bool *nu_to_bool(nu_val *b)
+nu_bool *nu_bool_get(nu_val *b)
 {
-	return nu_literal_bool[_nu_to_bool_ptr[b->type](b)];
+	return nu_literal_bool[_nu_bool_get_ptr[b->type](b)];
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

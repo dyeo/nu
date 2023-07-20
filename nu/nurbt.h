@@ -34,7 +34,7 @@ typedef struct rb_tree
 const extern rb_node rb_nil;
 #define RB_NIL (&rb_nil)
 
-NU_NEW_FPTR(rb_traverse_fptr, void, rb_node *);
+NU_FPTR_NEW(rb_traverse_fptr, void, rb_node *);
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
