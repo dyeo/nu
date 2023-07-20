@@ -56,6 +56,10 @@ nu_free_fptr _nu_free_ptr[8] = {
     (nu_free_fptr)_nu_free_none};
 void nu_free(nu_val *o)
 {
+    if (nu_is_literal(o))
+    {
+        return;
+    }
     _nu_free_ptr[o->type](o);
 }
 
@@ -169,17 +173,17 @@ nu_num *nu_hash(const nu_val *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_NEW_FPTR(nu_repr_fptr, const char *, const nu_val *);
+NU_NEW_FPTR(nu_repr_fptr, str_t , const nu_val *);
 
-const char *_nu_repr_none(const nu_val *o)
+str_t _nu_repr_none(const nu_val *o)
 {
     return utfdup("none");
 }
-const char *_nu_repr_bool(const nu_bool *o)
+str_t _nu_repr_bool(const nu_bool *o)
 {
     return utfdup(o->data ? "true" : "false");
 }
-const char *_nu_repr_num(const nu_num *o)
+str_t _nu_repr_num(const nu_num *o)
 {
     size_t size;
     char *buf;
@@ -198,18 +202,18 @@ const char *_nu_repr_num(const nu_num *o)
     buf[size] = NULL;
     return buf;
 }
-const char *_nu_repr_str(const nu_str *o)
+str_t _nu_repr_str(const nu_str *o)
 {
     char *buf = nu_calloc(char, o->cap + 3);
     snprintf(buf, o->cap + 3, "\"%s\"", o->data);
     buf[o->cap + 2] = NULL;
     return buf;
 }
-const char *_nu_repr_fn(const nu_fn *o)
+str_t _nu_repr_fn(const nu_fn *o)
 {
     return NULL;
 }
-const char *_nu_repr_arr(const nu_arr *o)
+str_t _nu_repr_arr(const nu_arr *o)
 {
     char **elems = nu_calloc(char *, o->len);
     size_t *sizes = nu_calloc(size_t, o->len);
@@ -249,11 +253,11 @@ const char *_nu_repr_arr(const nu_arr *o)
     result[j] = 0;
     return result;
 }
-const char *_nu_repr_obj(const nu_obj *o)
+str_t _nu_repr_obj(const nu_obj *o)
 {
     return NULL;
 }
-const char *_nu_repr_thr(const nu_thr *o)
+str_t _nu_repr_thr(const nu_thr *o)
 {
     return NULL;
 }
@@ -266,7 +270,7 @@ nu_repr_fptr _nu_repr_ptr[8] = {
     (nu_repr_fptr)_nu_repr_arr,
     (nu_repr_fptr)_nu_repr_obj,
     (nu_repr_fptr)_nu_repr_thr};
-const char *nu_c_repr(const nu_val *o)
+str_t nu_c_repr(const nu_val *o)
 {
     return _nu_repr_ptr[o->type](o);
 }
@@ -630,27 +634,27 @@ const nu_bool *nu_ge(const nu_val *l, const nu_val *r)
 
 const nu_bool *_nu_gt_bool(const nu_bool *l, const nu_bool *r)
 {
-    return NU_NONE;
+    return nu_literal_bool[l->data > r->data];
 }
 const nu_bool *_nu_gt_num(const nu_num *l, const nu_num *r)
 {
     return nu_literal_bool[l->data > r->data];
 }
-const nu_bool *_nu_gt_str(const nu_val *l, const nu_val *r)
+const nu_bool *_nu_gt_str(const nu_str *l, const nu_str *r)
+{
+    return nu_literal_bool[l->len > r->len];
+}
+const nu_bool *_nu_gt_fn(const nu_fn *l, const nu_fn *r)
 {
     return NU_NONE;
 }
-const nu_bool *_nu_gt_fn(const nu_val *l, const nu_val *r)
+const nu_bool *_nu_gt_arr(const nu_arr *l, const nu_arr *r)
 {
-    return NU_NONE;
+    return nu_literal_bool[l->len > r->len];
 }
-const nu_bool *_nu_gt_arr(const nu_val *l, const nu_val *r)
+const nu_bool *_nu_gt_obj(const nu_obj *l, const nu_obj *r)
 {
-    return NU_NONE;
-}
-const nu_bool *_nu_gt_obj(const nu_val *l, const nu_val *r)
-{
-    return NU_NONE;
+    return nu_literal_bool[l->len > r->len];
 }
 const nu_bool *_nu_gt_thr(const nu_val *l, const nu_val *r)
 {
@@ -684,28 +688,51 @@ nu_cmpr_t _nu_cmp_ptr[8] = {
 
 const nu_bool *nu_cmp(const nu_val *l, const nu_val *r, uint8_t how)
 {
-    _nu_cmp_ptr[how](l, r);
+    return _nu_cmp_ptr[how](l, r);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_val *_nu_add_bool(nu_bool *l, nu_bool *r)
+nu_bool *_nu_add_bool(nu_bool *l, nu_bool *r)
 {
     return nu_literal_bool[(l->data + r->data) != 0];
 }
 
-nu_val *_nu_add_num(nu_num *l, nu_num *r)
+nu_num *_nu_add_num(nu_num *l, nu_num *r)
 {
     return nu_new_num(l->data + r->data);
 }
 
-nu_val *_nu_add_str(nu_val *l, nu_val *r)
+nu_fn *_nu_add_fn(nu_fn *l, nu_fn *r)
 {
     return NU_NONE;
 }
 
-nu_val *_nu_add_arr(nu_val *l, nu_val *r)
+nu_str *_nu_add_str(nu_str *l, nu_str *r)
 {
+    char *res = nu_calloc(char, l->cap + r->cap - 1);
+    strncpy_s(res, l->cap - 1, l->data, l->cap - 1);
+    strncpy_s(res + l->cap-1, r->cap - 1, r->data, r->cap - 1);
+    return nu_new_str(res);
+}
+
+nu_arr *_nu_add_arr(nu_arr *l, nu_arr *r)
+{
+    nu_arr *res = nu_new_arr(l->cap + r->cap);
+    for (int i = 0; i < l->len; ++i)
+    {
+        nu_push_val_arr(res, nu_c_get_val_arr(l, i));
+    }
+    for (int i = 0; i < r->len; ++i)
+    {
+        nu_push_val_arr(res, nu_c_get_val_arr(r, i));
+    }
+    return res;
+}
+
+nu_obj *_nu_add_obj(nu_obj *l, nu_obj *r)
+{
+    // TODO: implement
     return NU_NONE;
 }
 
@@ -714,9 +741,9 @@ const nu_oper_t _nu_add_ptr[8] = {
     (nu_oper_t)_nu_add_bool,
     (nu_oper_t)_nu_add_num,
     (nu_oper_t)_nu_add_str,
-    (nu_oper_t)nu_oper_none,
+    (nu_oper_t)_nu_add_fn,
     (nu_oper_t)_nu_add_arr,
-    (nu_oper_t)nu_oper_none,
+    (nu_oper_t)_nu_add_obj,
     (nu_oper_t)nu_oper_none};
 
 nu_val *nu_add(nu_val *l, const nu_val *r)

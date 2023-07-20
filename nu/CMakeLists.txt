@@ -1,4 +1,4 @@
-add_library(nu STATIC
+set(NU_SRC
     utils.h
     utf8.h
     utf8.c
@@ -13,6 +13,10 @@ add_library(nu STATIC
     nuvm.c
     nuvmops.c
 )
+
+list(APPEND NU_SRC ${NUVMOPS_INL})
+add_library(nu STATIC ${NU_SRC})
+add_dependencies(nu NU_GENOPS)
 
 if(UNIX)
     target_link_libraries(nu m)

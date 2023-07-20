@@ -32,7 +32,7 @@ num_t _nu_to_num_t_none(nu_val *o)
 
 num_t _nu_to_num_t_bool(nu_bool *o)
 {
-	return o->data;
+	return (o->data != 0);
 }
 
 num_t _nu_to_num_t_num(nu_num *o)

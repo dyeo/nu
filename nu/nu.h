@@ -56,7 +56,7 @@ typedef struct nu_str
     NU_BASE_HEADER;
     size_t len; // string character length
     size_t cap; // string byte length
-    char *data;
+    str_t data;
 } nu_str;
 
 typedef struct nu_fn
@@ -116,6 +116,15 @@ const extern nu_bool *nu_literal_bool[2];
 
 inline static const nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return NU_NONE; }
 
+inline static bool nu_is_literal(const nu_val *val) {
+    return val == NU_NONE ||
+           val == NU_TRUE ||
+           val == NU_FALSE ||
+           val == NU_ZERO ||
+           val == NU_ONE ||
+           val == NU_EMPTY;
+}
+
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Initialization, Finalization, & Interpreter State
@@ -136,7 +145,7 @@ nu_num *nu_len(const nu_val *val);
 nu_num *nu_cap(const nu_val *val);
 
 nu_num *nu_hash(const nu_val *val);
-const char *nu_c_repr(const nu_val *val);
+str_t nu_c_repr(const nu_val *val);
 
 bool nu_set_val(nu_val *cnt, nu_val *key, nu_val *val);
 nu_val *nu_get_val(nu_val *cnt, nu_val *key);
@@ -181,10 +190,10 @@ inline static bool nu_is_thr(nu_val *val) { return val->type == NU_T_THR; }
 // --------------------------------------------------------------------------------------------------------------------------------
 
 void nu_free(nu_val *val);
-inline static bool nu_opt_free(nu_val *val) { if(val->refs == 0) { nu_free(val); return true; } return false; }
+inline static bool nu_opt_free(nu_val *val) { if(val->refs > 0) { return false; } nu_free(val); return true; }
 
-inline static bool nu_incref(nu_val *val) { if (nu_is_none(val)) { return false; } else { NU_ASSERT(val->refs != NU_REFS_MAX, "val has too many refs"); val->refs++; return true; } }
-inline static bool nu_decref(nu_val *val) { if (nu_is_none(val)) { return false; } else { NU_ASSERT(val->refs != 0, "val has no refs"); val->refs--; return true; } }
+inline static bool nu_incref(nu_val *val) { if (nu_is_literal(val)) { return false; } NU_ASSERT(val->refs != NU_REFS_MAX, "val has too many refs"); val->refs++; return true; }
+inline static bool nu_decref(nu_val *val) { if (nu_is_literal(val)) { return false; } NU_ASSERT(val->refs != 0, "val has no refs"); val->refs--; return true; }
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -227,7 +236,7 @@ nu_num *nu_to_num(nu_val *val);
 // nustr.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_str *nu_new_str(const char *data);
+nu_str *nu_new_str(str_t data);
 void nu_free_str(nu_str *str);
 
 nu_str *nu_get_val_str(nu_str *str, nu_num *key);
@@ -293,33 +302,30 @@ inline static nu_str *nu_repr(const nu_val *val) { return nu_new_str(nu_c_repr(v
 // nuvm.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-// operation
-typedef struct nu_op
-{
-    uint8_t op;
-    void **args;
-} nu_op;
-
-nu_op *nu_new_op(uint8_t op, ...);
-void nu_free_op(nu_op *op);
-
-// virtual machine
 typedef struct nu_vm
 {
     nu_val *reg[NU_REGISTERS]; // registers
+    nu_val *res; // result register
 
     nu_obj *glb; // global variables
     nu_obj *loc; // local variables
-    
+
     size_t opl; // operation length
     size_t opc; // operation capacity
-    nu_op **ops; // operations array
-    
-    size_t opp; // operation pointer
+    uint8_t *op; // opcodes
+
+    uint8_t *opp; // current operation pointer
+    size_t ops; // operation size remaining
 } nu_vm;
+
+#define NU_VM_POP(VM, TYPE) (TYPE) nu_pop_bytes(&(VM->opp), &(VM->ops), sizeof(TYPE))
 
 nu_vm *nu_new_vm();
 void nu_free_vm(nu_vm *vm);
+
+void nu_vm_add_op(nu_vm *vm, const uint8_t *op, const size_t len);
+
+void nu_vm_run(nu_vm *vm);
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -327,56 +333,43 @@ void nu_free_vm(nu_vm *vm);
 // nuvmops.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
-#include "nuvmop.inl"
+NU_NEW_FPTR(nu_op_fptr, void, nu_vm *);
 
-// no-op
-NU_VM_OP_0(0x00, noop);
+void nu_op_noop(nu_vm *vm);
 
-// load register with value
-NU_VM_OP_2(0x01, load, const uint8_t, nu_val *);
+void nu_op_load(nu_vm *vm);
+void nu_op_swap(nu_vm *vm);
 
-// swap register values
-NU_VM_OP_2(0x02, swap, const uint8_t, const uint8_t);
+void nu_op_cmpv(nu_vm *vm);
+void nu_op_cmpr(nu_vm *vm);
+void nu_op_jmp(nu_vm *vm);
+void nu_op_jne(nu_vm *vm);
+void nu_op_njmp(nu_vm *vm);
 
-// compare register to value and set register to result
-NU_VM_OP_3(0x03, cmpv, const uint8_t, const nu_val *, const uint8_t);
+void nu_op_add(nu_vm *vm);
+void nu_op_sub(nu_vm *vm);
+void nu_op_mul(nu_vm *vm);
+void nu_op_div(nu_vm *vm);
+void nu_op_mod(nu_vm *vm);
 
-// compare register to other register and set register to result
-NU_VM_OP_3(0x04, cmpr, const uint8_t, const uint8_t, const uint8_t);
+void nu_op_addv(nu_vm *vm);
+void nu_op_setv(nu_vm *vm);
+void nu_op_getv(nu_vm *vm);
+void nu_op_delv(nu_vm *vm);
 
-// jump to op if value in register evaluates to true
-NU_VM_OP_2(0x05, jmp, const uint8_t, const size_t);
+void nu_op_setg(nu_vm *vm);
+void nu_op_setl(nu_vm *vm);
+void nu_op_getg(nu_vm *vm);
+void nu_op_getl(nu_vm *vm);
+void nu_op_delg(nu_vm *vm);
+void nu_op_dell(nu_vm *vm);
 
-// non-conditional jump to op
-NU_VM_OP_1(0x06, njmp, const size_t);
+// --------------------------------------------------------------------------------------------------------------------------------
+// Virtual Machine Operation Lookups
+// nuvmops.inl
+// --------------------------------------------------------------------------------------------------------------------------------
 
-// add value to value in register
-NU_VM_OP_2(0x07, add, const uint8_t, const nu_val *);
-
-// subtract value from value in register
-NU_VM_OP_2(0x08, sub, const uint8_t, const nu_val *);
-
-// multiply register value by other value
-NU_VM_OP_2(0x09, mul, const uint8_t, const nu_val *);
-
-// divide register value by other value
-NU_VM_OP_2(0x0A, div, const uint8_t, const nu_val *);
-
-// modulus register value by other value
-NU_VM_OP_2(0x0B, mod, const uint8_t, const nu_val *);
-
-// add value to obj or arr in register
-NU_VM_OP_3(0x0C, addv, const uint8_t, const nu_val *, const nu_val *);
-
-// set value in obj or arr in register
-NU_VM_OP_3(0x0D, setv, const uint8_t, const nu_val *, const nu_val *);
-
-// get value in obj or arr in one register and load it to another
-NU_VM_OP_3(0x0E, getv, const uint8_t, const nu_val *, const uint8_t);
-
-// delete value in obj or arr in one register and load it to another
-NU_VM_OP_3(0x0F, delv, const uint8_t, const nu_val *, const uint8_t);
-
+#include "nuvmops.inl"
 
 // --------------------------------------------------------------------------------------------------------------------------------
 

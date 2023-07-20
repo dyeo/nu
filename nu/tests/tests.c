@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     //
     // nu_set_val_obj(o, n, s);
     // nu_val *t = nu_get_val_obj(o, n);
-    // const char *r = nu_c_repr(t);
+    // str_t r = nu_c_repr(t);
     // printf("%s\n", r);
     // free(r);
     // nu_num *_hash = nu_hash(s);

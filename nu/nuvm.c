@@ -4,43 +4,6 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_op *nu_new_op(uint8_t op, ...)
-{
-    nu_op *r = nu_malloc(nu_op);
-    NU_ASSERT(r != NULL, "heap allocation error");
-    r->op = op;
-
-    va_list args;
-    void *arg;
-
-    uint8_t c = 0;
-    va_start(args, op);
-    while ((arg = va_arg(args, void *)) != NULL)
-    {
-        c++;
-    }
-    va_end(args);
-
-    size_t i = 0;
-    r->args = nu_calloc(void*, c);
-    va_start(args, op);
-    while ((arg = va_arg(args, void *)) != NULL)
-    {
-        r->args[i++] = arg;
-    }
-    va_end(args);
-
-    return r;
-}
-
-void nu_free_op(nu_op *op)
-{
-    op->op = 0;
-    free(op->args);
-}
-
-// --------------------------------------------------------------------------------------------------------------------------------
-
 nu_vm *nu_new_vm()
 {
     nu_vm *r = nu_malloc(nu_vm);
@@ -49,12 +12,14 @@ nu_vm *nu_new_vm()
     {
         r->reg[i] = NU_NONE;
     }
+    r->res = NU_NONE;
     r->glb = nu_new_obj();
     r->loc = nu_new_obj();
     r->opl = 0;
     r->opc = 16;
-    r->ops = nu_calloc(nu_op *, r->opc);
-    r->opp = 0;
+    r->op = nu_calloc(uint8_t, r->opc);
+    r->opp = r->op;
+    r->ops = 0;
     return r;
 }
 
@@ -62,13 +27,38 @@ void nu_free_vm(nu_vm *vm)
 {
     nu_free_obj(vm->glb);
     nu_free_obj(vm->loc);
-    vm->opl = vm->opc = 0;
-    for (size_t i = 0; i < vm->opl; ++i)
-    {
-        nu_free_op(vm->ops[i]);
-    }
-    free(vm->ops);
+    vm->opl = 0;
+    vm->opc = 0;
+    free(vm->op);
+    vm->opp = 0;
+    vm->ops = 0;
     free(vm);
+}
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+void nu_vm_add_op(nu_vm *vm, const uint8_t *op, const size_t len)
+{
+    size_t diff = vm->opp - vm->op;
+    if (vm->opl + len > vm->opc)
+    {
+        size_t new_opc = vm->opc;
+        while (new_opc < vm->opl + len)
+            new_opc *= 2;
+        vm->opc = new_opc;
+        vm->op = nu_realloc(uint8_t, vm->op, vm->opc);
+    }
+    memcpy(vm->op + vm->opl, op, len);
+    vm->opl += len;
+    vm->opp = vm->op + diff;
+    vm->ops = vm->opl - diff;
+}
+
+void nu_vm_run(nu_vm *vm)
+{
+    uint8_t op = NU_VM_POP(vm, uint8_t);
+    NU_ASSERT(op >= 0 && op < NU_OPS_COUNT, "Invalid opcode");
+    nu_op_ptr[op](vm);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

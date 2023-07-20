@@ -3,7 +3,7 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-nu_str *_nu_new_str(char *str, size_t blen, size_t clen)
+nu_str *_nu_new_str(str_t str, size_t blen, size_t clen)
 {
     nu_str *r = nu_malloc(nu_str);
     NU_ASSERT(r != NULL, "heap allocation error");
@@ -15,13 +15,13 @@ nu_str *_nu_new_str(char *str, size_t blen, size_t clen)
     return r;
 }
 
-nu_str *nu_new_str(const char *str)
+nu_str *nu_new_str(str_t str)
 {
     size_t blen, clen;
     utfdlen(str, &blen, &clen);
     char *dest = nu_calloc(char, ++blen);
     dest[blen - 1] = NULL;
-    strncpy(dest, str, blen - 1);
+    strncpy_s(dest, blen - 1, str, blen - 1);
     return _nu_new_str(dest, blen, clen);
 }
 
@@ -30,7 +30,7 @@ void nu_free_str(nu_str *o)
     o->type = NU_T_NONE;
     o->refs = 0u;
     o->len = 0u;
-    o->cap = NULL;
+    o->cap = 0u;
     free(o->data);
     o->data = NULL;
     free(o);
@@ -45,7 +45,7 @@ nu_str *nu_get_val_str(nu_str *str, nu_num *idx)
     size_t i = nu_c_to_size_t(idx);
     if (i > str->len)
         return NU_NONE;
-    char *c = str->data;
+    str_t c = str->data;
     size_t n = 0;
     for (; i-- > 0;)
     {

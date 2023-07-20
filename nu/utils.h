@@ -41,6 +41,8 @@ typedef int i_num_t;
 #define NU_SZE_FMT "%lu"
 #endif
 
+typedef const char *str_t;
+
 // --------------------------------------------------------------------------------------------------------------------------------
 
 #define xstr(s) str(s)
@@ -50,7 +52,7 @@ typedef int i_num_t;
 #define nu_calloc(TYPE, COUNT) (TYPE *)calloc(COUNT, sizeof(TYPE))
 #define nu_realloc(TYPE, PTR, COUNT) (TYPE *)realloc(PTR, sizeof(TYPE) * (COUNT))
 
-#define nu_copy(TYPE, DST, SRC, COUNT) (TYPE *)memcpy(DST, SRC, sizeof(TYPE) * (COUNT))
+#define nu_copy(TYPE, DST, SRC, SIZE) (TYPE *)memcpy(DST, SRC, SIZE)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
@@ -61,12 +63,40 @@ typedef int i_num_t;
 // --------------------------------------------------------------------------------------------------------------------------------
 
 #define NU_LOG(MESSAGE) { fprintf(stdout, "LOG: %s\n", MESSAGE); }
-#define NU_ERR(MESSAGE) {  fprintf(stderr, "ERR: %s\n", MESSAGE); exit(1); }
+#define NU_ERR(MESSAGE) {  fprintf(stderr, "ERR: %s\n", MESSAGE); }
 #ifndef NDEBUG
-#define NU_ASSERT(EXPRESSION, MESSAGE) { if (!(EXPRESSION)) { fprintf(stderr, "ERR: " __FILE__ ":" xstr(__LINE__) ": ASSERT: " xstr(#EXPRESSION) " is false: %s\n", MESSAGE); exit(1); } }
+#define NU_ASSERT(EXPRESSION, MESSAGE) do { if (!(EXPRESSION)) { fprintf(stderr, "ERR: " __FILE__ ":" xstr(__LINE__) ": ASSERT: " xstr(#EXPRESSION) " is false: %s\n", MESSAGE); exit(1); } } while(0)
 #else
 #define NU_ASSERT(EXPRESSION, MESSAGE) ((void)0)
 #endif
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+inline static uintmax_t nu_from_bytes(const uint8_t *bytes, uint8_t count)
+{
+    NU_ASSERT(count <= sizeof(uintmax_t), "int too large");
+    uintmax_t res = 0;
+    for (uint8_t i = 0; i < count; ++i)
+    {
+        res = (res << 8) | *(bytes + i);
+    }
+    return res;
+}
+
+inline static uintmax_t nu_pop_bytes(uint8_t **bytes, size_t *size, uint8_t count)
+{
+    NU_ASSERT(count > *size, "could not pop enough bytes");
+    if (*size < count)
+    {
+        return 0;
+    }
+
+    uintmax_t res = nu_from_bytes(*bytes, count);
+
+    *bytes += count;
+    *size -= count;
+    return res;
+}
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
@@ -122,8 +152,8 @@ inline static size_t rorN(size_t x, size_t bits)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-const static uint32_t _FNV_PRIME_32 = 16777619;
-const static uint32_t _FNV_OFFSET_32 = 2166136261;
+static const uint32_t _FNV_PRIME_32 = 16777619;
+static const uint32_t _FNV_OFFSET_32 = 2166136261;
 
 /// @brief Returns a unique hash of a given sequence of bytes (FNV-1a).
 /// @param b The sequence of bytes to hash.
@@ -142,8 +172,8 @@ inline static uint32_t hash32(const uint8_t *b, uint32_t n)
     return h;
 }
 
-const static uint64_t _FNV_PRIME_64 = 1099511628211;
-const static uint64_t _FNV_OFFSET_64 = 14695981039346656037;
+static const uint64_t _FNV_PRIME_64 = 1099511628211;
+static const uint64_t _FNV_OFFSET_64 = 14695981039346656037;
 
 /// @brief Returns a unique hash of a given sequence of bytes (FNV-1a).
 /// @param b The sequence of bytes to hash.
