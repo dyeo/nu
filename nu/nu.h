@@ -143,17 +143,24 @@ static const nu_str nu_empty = {NU_STR_T, 0ul, 0, 1, ""};
 #define NU_ONE (&nu_one)
 #define NU_EMPTY (&nu_empty)
 
+#define NU_NONE_VAL (&nu_none)
+#define NU_TRUE_VAL (&nu_true.base)
+#define NU_FALSE_VAL (&nu_false.base)
+#define NU_ZERO_VAL (&nu_zero.base)
+#define NU_ONE_VAL (&nu_one.base)
+#define NU_EMPTY_VAL (&nu_empty.base)
+
 static const nu_bool *nu_literal_bool[2] = {NU_FALSE, NU_TRUE};
 
 inline static const nu_val *nu_none_oper(nu_val *_0, nu_val *_1) { return NU_NONE; }
 
 inline static bool nu_is_literal(const nu_val *val) {
-    return val == NU_NONE ||
-           val == NU_TRUE ||
-           val == NU_FALSE ||
-           val == NU_ZERO ||
-           val == NU_ONE ||
-           val == NU_EMPTY;
+    return val == NU_NONE_VAL ||
+           val == NU_TRUE_VAL ||
+           val == NU_FALSE_VAL ||
+           val == NU_ZERO_VAL ||
+           val == NU_ONE_VAL ||
+           val == NU_EMPTY_VAL ;
 }
 
 
@@ -307,7 +314,7 @@ inline static nu_val *nu_arr_pop_val(nu_arr *arr) { return nu_arr_del_val_c(arr,
 inline static void nu_arr_enq_val(nu_arr *arr, nu_val *val) { nu_arr_add_val_c(arr, 0, val); }
 inline static nu_val *nu_arr_deq_val(nu_arr *arr) { return nu_arr_del_val_c(arr, arr->len - 1); }
 
-inline static void nu_arr_clear(nu_obj *arr) { while (arr->len > 0) { nu_arr_pop_val(arr); } }
+inline static void nu_arr_clear(nu_arr *arr) { while (arr->len > 0) { nu_arr_pop_val(arr); } }
 
 bool nu_arr_has_val_c(const nu_arr *arr, const nu_val *val);
 inline static nu_bool *nu_arr_has_val(const nu_arr *arr, const nu_val *val) { return nu_bool_new(nu_arr_has_val_c(arr, val)); }
