@@ -6,7 +6,7 @@ nu_arr *nu_arr_new(size_t c)
 {
     nu_arr *r = nu_malloc(nu_arr);
     NU_ASSERT(r != NULL, "heap allocation error");
-    NU_ARR_INIT(r, 0, c == 0 ? 16 : c, nu_calloc(r->cap, nu_val*));
+    NU_ARR_INIT(r, 0, c == 0 ? 16 : c, nu_calloc(r->cap, nu_val *));
     return r;
 }
 
@@ -120,6 +120,20 @@ nu_val *nu_arr_del_val(nu_arr *arr, nu_num *idx)
 {
     NU_ASSERT(nu_is_num(idx), "cannot index array with non-number");
     return nu_arr_del_val_c(arr, nu_size_t_get_c(idx));
+}
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+bool nu_arr_has_val_c(const nu_arr *arr, const nu_val *val)
+{
+    for (size_t i = 0; i < arr->len; ++i)
+    {
+        if (nu_eq(val, *(arr->data+i)))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

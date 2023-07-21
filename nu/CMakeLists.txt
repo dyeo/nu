@@ -14,7 +14,7 @@ set(NU_SRC
     nuvmops.c
 )
 
-list(APPEND NU_SRC ${NUVMOPS_INL})
+file(REMOVE ${NUVMOPS_INL})
 add_library(nu STATIC ${NU_SRC})
 add_dependencies(nu NU_GENOPS)
 

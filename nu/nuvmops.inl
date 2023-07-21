@@ -21,10 +21,10 @@
 #define NU_OP_GETV 15
 #define NU_OP_DELV 16
 #define NU_OP_SETG 17
-#define NU_OP_SETL 18
-#define NU_OP_GETG 19
-#define NU_OP_GETL 20
-#define NU_OP_DELG 21
+#define NU_OP_GETG 18
+#define NU_OP_DELG 19
+#define NU_OP_SETL 20
+#define NU_OP_GETL 21
 #define NU_OP_DELL 22
 #define NU_OPS_COUNT 23
 
@@ -48,10 +48,10 @@ const static str_t nu_op_name[] =
 	[NU_OP_GETV] = "getv",
 	[NU_OP_DELV] = "delv",
 	[NU_OP_SETG] = "setg",
-	[NU_OP_SETL] = "setl",
 	[NU_OP_GETG] = "getg",
-	[NU_OP_GETL] = "getl",
 	[NU_OP_DELG] = "delg",
+	[NU_OP_SETL] = "setl",
+	[NU_OP_GETL] = "getl",
 	[NU_OP_DELL] = "dell"
 };
 
@@ -75,10 +75,10 @@ const static nu_op_fptr nu_op_ptr[] =
 	[NU_OP_GETV] = &nu_op_getv,
 	[NU_OP_DELV] = &nu_op_delv,
 	[NU_OP_SETG] = &nu_op_setg,
-	[NU_OP_SETL] = &nu_op_setl,
 	[NU_OP_GETG] = &nu_op_getg,
-	[NU_OP_GETL] = &nu_op_getl,
 	[NU_OP_DELG] = &nu_op_delg,
+	[NU_OP_SETL] = &nu_op_setl,
+	[NU_OP_GETL] = &nu_op_getl,
 	[NU_OP_DELL] = &nu_op_dell
 };
 

@@ -15,6 +15,7 @@ add_custom_command(
     OUTPUT ${NUVMOPS_INL}
     COMMAND ${CMAKE_COMMAND} -E env python ${GENOPS_PY} > ${NUVMOPS_INL}
     DEPENDS ${GENOPS_PY}
+    DEPENDS NU_GENOPS
     COMMENT "Generating code..."
     VERBATIM
 )

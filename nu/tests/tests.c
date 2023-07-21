@@ -54,10 +54,7 @@ int main(int argc, char **argv)
     }
     printf("%s\n", nu_repr_c(arr));
     printf("\n");
-    for (int i = arr->len; i > 0; i--)
-    {
-        nu_arr_pop_val(arr);
-    }
+    nu_arr_clear(arr);
     printf("%s\n", nu_repr_c(arr));
     nu_free(arr);
     // printf("len: %lu\n", nu_to_size_t(nu_len(arr)));

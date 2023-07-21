@@ -145,7 +145,7 @@ static const nu_str nu_empty = {NU_STR_T, 0ul, 0, 1, ""};
 
 static const nu_bool *nu_literal_bool[2] = {NU_FALSE, NU_TRUE};
 
-inline static const nu_val *nu_oper_none(nu_val *_0, nu_val *_1) { return NU_NONE; }
+inline static const nu_val *nu_none_oper(nu_val *_0, nu_val *_1) { return NU_NONE; }
 
 inline static bool nu_is_literal(const nu_val *val) {
     return val == NU_NONE ||
@@ -307,7 +307,10 @@ inline static nu_val *nu_arr_pop_val(nu_arr *arr) { return nu_arr_del_val_c(arr,
 inline static void nu_arr_enq_val(nu_arr *arr, nu_val *val) { nu_arr_add_val_c(arr, 0, val); }
 inline static nu_val *nu_arr_deq_val(nu_arr *arr) { return nu_arr_del_val_c(arr, arr->len - 1); }
 
-void nu_arr_clear(nu_obj *obj);
+inline static void nu_arr_clear(nu_obj *arr) { while (arr->len > 0) { nu_arr_pop_val(arr); } }
+
+bool nu_arr_has_val_c(const nu_arr *arr, const nu_val *val);
+inline static nu_bool *nu_arr_has_val(const nu_arr *arr, const nu_val *val) { return nu_bool_new(nu_arr_has_val_c(arr, val)); }
 
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -329,11 +332,17 @@ nu_val *nu_obj_get_val(nu_obj *obj, const nu_val *key);
 inline static bool nu_obj_add_val(nu_obj *obj, nu_val *key, nu_val *val) { return nu_obj_set_val(obj, key, val); }
 nu_val *nu_obj_del_val(nu_obj *obj, nu_val *key);
 
-size_t nu_obj_keys_c(nu_obj *obj, nu_val **keys);
-size_t nu_obj_vals_c(nu_obj *obj, nu_val **vals);
+size_t nu_obj_keys_c(const nu_obj *obj, const nu_val **keys);
+size_t nu_obj_vals_c(const nu_obj *obj, const nu_val **vals);
 
-nu_arr *nu_obj_keys(nu_obj *obj);
-nu_arr *nu_obj_vals(nu_obj *obj);
+nu_arr *nu_obj_keys(const nu_obj *obj);
+nu_arr *nu_obj_vals(const nu_obj *obj);
+
+bool nu_obj_has_key_c(const nu_obj *obj, const nu_val *key);
+inline static nu_bool *nu_obj_has_key(const nu_obj *obj, const nu_val *key) { return nu_bool_new(nu_obj_has_key_c(obj, key)); }
+
+bool nu_obj_has_val_c(const nu_obj *obj, const nu_val *val);
+inline static nu_bool *nu_obj_has_val(const nu_obj *obj, const nu_val *val) { return nu_bool_new(nu_obj_has_val_c(obj, val)); }
 
 void nu_obj_clear(nu_obj *obj);
 
@@ -416,10 +425,11 @@ void nu_op_getv(nu_vm *vm);
 void nu_op_delv(nu_vm *vm);
 
 void nu_op_setg(nu_vm *vm);
-void nu_op_setl(nu_vm *vm);
 void nu_op_getg(nu_vm *vm);
-void nu_op_getl(nu_vm *vm);
 void nu_op_delg(nu_vm *vm);
+
+void nu_op_setl(nu_vm *vm);
+void nu_op_getl(nu_vm *vm);
 void nu_op_dell(nu_vm *vm);
 
 

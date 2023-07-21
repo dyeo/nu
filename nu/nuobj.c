@@ -126,7 +126,7 @@ nu_val *nu_obj_del_val(nu_obj *obj, const nu_val *key)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-size_t nu_obj_keys_c(nu_obj *obj, nu_val **keys)
+size_t nu_obj_keys_c(const nu_obj *obj, const nu_val **keys)
 {
     size_t res = obj->len;
     *keys = nu_calloc(res, nu_val *);
@@ -140,7 +140,7 @@ size_t nu_obj_keys_c(nu_obj *obj, nu_val **keys)
     return res;
 }
 
-size_t nu_obj_vals_c(nu_obj *obj, nu_val **vals)
+size_t nu_obj_vals_c(const nu_obj *obj, const nu_val **vals)
 {
     size_t res = obj->len;
     *vals = nu_calloc(res, nu_val *);
@@ -154,7 +154,7 @@ size_t nu_obj_vals_c(nu_obj *obj, nu_val **vals)
     return res;
 }
 
-nu_arr *nu_obj_keys(nu_obj *obj)
+nu_arr *nu_obj_keys(const nu_obj *obj)
 {
     nu_val *keys = NULL;
     size_t len = nu_obj_keys_c(obj, &keys);
@@ -163,13 +163,55 @@ nu_arr *nu_obj_keys(nu_obj *obj)
     return res;
 }
 
-nu_arr *nu_obj_vals(nu_obj *obj)
+nu_arr *nu_obj_vals(const nu_obj *obj)
 {
     nu_val *vals = NULL;
     size_t len = nu_obj_vals_c(obj, &vals);
     nu_arr *res = nu_malloc(nu_arr);
     NU_ARR_INIT(res, len, len, &vals);
     return res;
+}
+
+bool nu_obj_has_key_c(const nu_obj *obj, const nu_val *key)
+{
+    if (obj == NU_NONE || key == NU_NONE)
+    {
+        return NU_NONE;
+    }
+
+    size_t hashv = nu_size_t_get_c(nu_hash(key));
+    if (hashv == 0)
+    {
+        return NU_NONE;
+    }
+    
+    rb_node *knode = rb_search(obj->keys, hashv);
+    return knode != RB_NIL;
+}
+
+bool nu_obj_has_val_c(const nu_obj *obj, const nu_val *val)
+{
+    rb_node *curr = rb_min(obj->vals->root);
+    while (curr != RB_NIL)
+    {
+        if (nu_eq(val, curr->val))
+        {
+            return true;
+        }
+        curr = rb_next(curr);
+    }
+    return false;
+}
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+void nu_obj_clear(nu_obj *obj)
+{
+    rb_free_tree_iter(obj->keys, _nu_free_iter);
+    rb_free_tree_iter(obj->vals, _nu_free_iter);
+    obj->len = 0;
+    obj->keys = rb_new_tree();
+    obj->vals = rb_new_tree();
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

@@ -56,7 +56,7 @@ void nu_op_cmpv(nu_vm *vm)
     const uint8_t reg = NU_VM_POP(vm, uint8_t);
     const nu_val *val = NU_VM_POP(vm, nu_val *);
     const uint8_t how = NU_VM_POP(vm, uint8_t);
-    nu_bool *res = nu_cmp(vm->reg[reg], val, how);
+    nu_val *res = &(nu_cmp(vm->reg[reg], val, how)->base);
     _nu_load_res(vm, res);
 }
 
@@ -65,7 +65,7 @@ void nu_op_cmpr(nu_vm *vm)
     const uint8_t reg0 = NU_VM_POP(vm, uint8_t);
     const uint8_t reg1 = NU_VM_POP(vm, uint8_t);
     const uint8_t how = NU_VM_POP(vm, uint8_t);
-    nu_bool *res = nu_cmp(vm->reg[reg0], vm->reg[reg1], how);
+    nu_val *res = &(nu_cmp(vm->reg[reg0], vm->reg[reg1], how)->base);
     _nu_load_res(vm, res);
 }
 
@@ -194,15 +194,15 @@ void nu_op_setg(nu_vm *vm)
 {
     const nu_val *key = NU_VM_POP(vm, nu_val *);
     const nu_val *val = NU_VM_POP(vm, nu_val *);
-    const nu_bool *res = nu_literal_bool[nu_obj_set_val(vm->glb, key, val)];
-    _nu_load_res(vm, res);
-}
-
-void nu_op_setl(nu_vm *vm)
-{
-    const nu_val *key = NU_VM_POP(vm, nu_val *);
-    const nu_val *val = NU_VM_POP(vm, nu_val *);
-    const nu_bool *res = nu_literal_bool[nu_obj_set_val(vm->loc, key, val)];
+    nu_bool *res;
+    if (key == NU_NONE)
+    {
+        res = nu_literal_bool[nu_obj_set_val(vm->glb, key, val)];
+    }
+    else
+    {
+        res = NU_NONE;
+    }
     _nu_load_res(vm, res);
 }
 
@@ -217,6 +217,37 @@ void nu_op_getg(nu_vm *vm)
     else
     {
         res = vm->glb;
+    }
+    _nu_load_res(vm, res);
+}
+
+void nu_op_delg(nu_vm *vm)
+{
+    const nu_val *key = NU_VM_POP(vm, nu_val *);
+    nu_val *res;
+    if (key == NU_NONE)
+    {
+        res = nu_obj_del_val(vm->glb, key);
+    }
+    else
+    {
+        res = NU_NONE;
+    }
+    _nu_load_res(vm, res);
+}
+
+void nu_op_setl(nu_vm *vm)
+{
+    const nu_val *key = NU_VM_POP(vm, nu_val *);
+    const nu_val *val = NU_VM_POP(vm, nu_val *);
+    nu_bool *res;
+    if (key == NU_NONE)
+    {
+        res = nu_literal_bool[nu_obj_set_val(vm->loc, key, val)];
+    }
+    else
+    {
+        res = NU_NONE;
     }
     _nu_load_res(vm, res);
 }
@@ -236,17 +267,18 @@ void nu_op_getl(nu_vm *vm)
     _nu_load_res(vm, res);
 }
 
-void nu_op_delg(nu_vm *vm)
-{
-    const nu_val *key = NU_VM_POP(vm, nu_val *);
-    nu_val *res = nu_obj_del_val(vm->glb, key);
-    _nu_load_res(vm, res);
-}
-
 void nu_op_dell(nu_vm *vm)
 {
     const nu_val *key = NU_VM_POP(vm, nu_val *);
-    nu_val *res = nu_obj_del_val(vm->loc, key);
+    nu_val *res;
+    if (key == NU_NONE)
+    {
+        res = nu_obj_del_val(vm->loc, key);
+    }
+    else
+    {
+        res = NU_NONE;
+    }
     _nu_load_res(vm, res);
 }
 
