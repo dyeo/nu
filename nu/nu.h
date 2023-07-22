@@ -183,6 +183,7 @@ nu_num *nu_len(const nu_val *val);
 nu_num *nu_cap(const nu_val *val);
 
 nu_num *nu_hash(const nu_val *val);
+size_t nu_hash_c(const nu_val *val);
 str_t nu_repr_c(const nu_val *val);
 
 bool nu_set_val(nu_val *cnt, nu_val *key, nu_val *val);

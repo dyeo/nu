@@ -36,7 +36,7 @@ bool nu_obj_set_val(nu_obj *obj, nu_val *key, nu_val *val)
         return false;
     }
 
-    size_t hashv = nu_size_t_get_c(nu_hash(key));
+    size_t hashv = nu_hash_c(key);
     if (hashv == 0)
     {
         return false;
@@ -78,7 +78,7 @@ nu_val *nu_obj_get_val(nu_obj *obj, const nu_val *key)
         return NU_NONE;
     }
 
-    size_t hashv = nu_size_t_get_c(nu_hash(key));
+    size_t hashv = nu_hash_c(key);
     if (hashv == 0)
     {
         return NU_NONE;
@@ -100,7 +100,7 @@ nu_val *nu_obj_del_val(nu_obj *obj, const nu_val *key)
         return NU_NONE;
     }
 
-    size_t hashv = nu_size_t_get_c(nu_hash(key));
+    size_t hashv = nu_hash_c(key);
     if (hashv == 0)
     {
         return NU_NONE;
@@ -179,7 +179,7 @@ bool nu_obj_has_key_c(const nu_obj *obj, const nu_val *key)
         return NU_NONE;
     }
 
-    size_t hashv = nu_size_t_get_c(nu_hash(key));
+    size_t hashv = nu_hash_c(key);
     if (hashv == 0)
     {
         return NU_NONE;

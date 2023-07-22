@@ -102,34 +102,34 @@ nu_num *nu_cap(const nu_val *o)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-NU_FPTR_NEW(nu_hash_fptr, nu_num *, nu_val *);
+NU_FPTR_NEW(nu_hash_fptr, size_t, const nu_val *);
 
-const nu_val *_nu_none_hash(nu_val *o)
+size_t _nu_none_hash(const nu_val *o)
 {
-    return NU_NONE;
+    return 0;
 }
 
-nu_num *_nu_bool_hash(nu_bool *o)
+size_t _nu_bool_hash(const nu_bool *o)
 {
     return nu_num_new(o->data != 0);
 }
 
-nu_num *_nu_num_hash(nu_num *o)
+size_t _nu_num_hash(const nu_num *o)
 {
     return nu_num_new(o->data);
 }
 
-nu_num *_nu_str_hash(nu_str *o)
+size_t _nu_str_hash(const nu_str *o)
 {
-    return nu_num_new((num_t)hashN(o->data, o->cap));
+    return hashN(o->data, o->cap);
 }
 
-const nu_val *_nu_fn_hash(nu_fn *o)
+size_t _nu_fn_hash(const nu_fn *o)
 {
-    return NU_NONE; // hashable???
+    return 0; // hashable???
 }
 
-nu_num *_nu_arr_hash(nu_arr *o)
+size_t _nu_arr_hash(const nu_arr *o)
 {
     size_t h = _FNV_OFFSET_N;
     size_t i;
@@ -137,10 +137,10 @@ nu_num *_nu_arr_hash(nu_arr *o)
     {
         h = (h ^ nu_size_t_get_c(nu_hash(o->data[i]))) * _FNV_PRIME_N;
     }
-    return nu_num_new((double)h);
+    return h;
 }
 
-nu_num *_nu_obj_hash(nu_obj *obj)
+size_t _nu_obj_hash(const nu_obj *obj)
 {
     size_t h = _FNV_OFFSET_N;
     rb_node *knode = rb_min(obj->keys->root);
@@ -150,12 +150,12 @@ nu_num *_nu_obj_hash(nu_obj *obj)
         h = (h ^ nu_size_t_get_c(nu_hash((nu_val *)knode->val))) * _FNV_PRIME_N;
         h = (h ^ nu_size_t_get_c(nu_hash((nu_val *)vnode->val))) * _FNV_PRIME_N;
     }
-    return nu_num_new((double)h);
+    return h;
 }
 
-const nu_val *_nu_thr_hash(nu_thr *o)
+size_t _nu_thr_hash(const nu_thr *o)
 {
-    return NU_NONE; // hashable???
+    return 0; // hashable???
 }
 
 nu_hash_fptr _nu_hash_ptr[8] = {
@@ -169,6 +169,12 @@ nu_hash_fptr _nu_hash_ptr[8] = {
     (nu_hash_fptr)_nu_thr_hash};
 
 nu_num *nu_hash(const nu_val *o)
+{
+    size_t h = _nu_hash_ptr[o->type](o);
+    return nu_num_new((num_t)h);
+}
+
+size_t nu_hash_c(const nu_val *o)
 {
     return _nu_hash_ptr[o->type](o);
 }
@@ -241,21 +247,21 @@ str_t _nu_arr_repr(const nu_arr *o)
     char *result = nu_calloc(total_size, char);
     i = 0;
     size_t j = 0;
-    strncpy_s(result + j, 2, "[ ", _TRUNCATE);
+    strncpy(result + j, "[ ", 2);
     j += 2;
     for (i; i < o->len; ++i)
     {
         char *elem = elems[i];
         size_t size = sizes[i];
-        strncpy_s(result + j, size, elem, _TRUNCATE);
+        strncpy(result + j, elem, size);
         j += size;
         if (i < o->len - 1)
         {
-            strncpy_s(result + j, 2, ", ", _TRUNCATE);
+            strncpy(result + j, ", ", 2);
             j += 2;
         }
     }
-    strncpy_s(result + j, 2, " ]", _TRUNCATE);
+    strncpy(result + j, " ]", 2);
     j += 2;
     result[j] = '\0';
     return result;
@@ -287,7 +293,7 @@ str_t _nu_obj_repr(const nu_obj *o)
     char *result = nu_calloc(total_size, char);
     i = 0;
     size_t j = 0;
-    strncpy_s(result + j, 2, "{ ", _TRUNCATE);
+    strncpy(result + j, "{ ", 2);
     j += 2;
     for (i; i < o->len; i += 2)
     {
@@ -295,19 +301,19 @@ str_t _nu_obj_repr(const nu_obj *o)
         char *val = elems[i + 1];
         size_t szek = sizes[i];
         size_t szev = sizes[i + 1];
-        strncpy_s(result + j, szek, key, _TRUNCATE);
+        strncpy(result + j, key, szek);
         j += szek;
-        strncpy_s(result + j, 2, ": ", _TRUNCATE);
+        strncpy(result + j, ": ", 2);
         j += 2;
-        strncpy_s(result + j, szev, key, _TRUNCATE);
+        strncpy(result + j, key, szev);
         j += szev;
         if (i < o->len - 1)
         {
-            strncpy_s(result + j, 2, ", ", _TRUNCATE);
+            strncpy(result + j, ", ", 2);
             j += 2;
         }
     }
-    strncpy_s(result + j, 2, " }", _TRUNCATE);
+    strncpy(result + j, " }", 2);
     j += 2;
     result[j] = '\0';
     return result;
