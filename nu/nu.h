@@ -138,8 +138,6 @@ static const nu_num nu_zero = {NU_NUM_T, 0ul, 0.0};
 static const nu_num nu_one = {NU_NUM_T, 0ul, 1.0};
 static const nu_str nu_empty = {NU_STR_T, 0ul, 0, 1, ""};
 
-const static nu_kvp nu_kvp_none = {0, &nu_none, &nu_none};
-#define nu_kvp_eq(a, b) (a.hsh == b.hsh && a.key == b.key && a.val == b.val)
 
 #define NU_NONE (&nu_none)
 #define NU_TRUE (&nu_true)
@@ -148,7 +146,6 @@ const static nu_kvp nu_kvp_none = {0, &nu_none, &nu_none};
 #define NU_ONE (&nu_one)
 #define NU_EMPTY (&nu_empty)
 
-#define NU_NONE_VAL (&nu_none)
 #define NU_TRUE_VAL (&nu_true.base)
 #define NU_FALSE_VAL (&nu_false.base)
 #define NU_ZERO_VAL (&nu_zero.base)
@@ -160,7 +157,7 @@ static const nu_bool *nu_literal_bool[2] = {NU_FALSE, NU_TRUE};
 inline static const nu_val *nu_none_oper(nu_val *_0, nu_val *_1) { return NU_NONE; }
 
 inline static bool nu_is_literal(const nu_val *val) {
-    return val == NU_NONE_VAL ||
+    return val == NU_NONE ||
            val == NU_TRUE_VAL ||
            val == NU_FALSE_VAL ||
            val == NU_ZERO_VAL ||
@@ -215,8 +212,8 @@ const nu_bool *nu_cmp(const nu_val *lhs, const nu_val *rhs, const uint8_t how);
 nu_val *nu_add(nu_val *lhs, const nu_val *rhs);
 nu_val *nu_sub(nu_val *lhs, const nu_val *rhs);
 nu_val *nu_mul(nu_val *lhs, const nu_val *rhs);
-nu_val *nu_div(nu_val *lhs, const nu_val *rhs);
 nu_val *nu_mod(nu_val *lhs, const nu_val *rhs);
+nu_val *nu_div(nu_val *lhs, const nu_val *rhs);
 
 inline static bool nu_is_none(nu_val *val) { return val->type == NU_NONE_T; }
 inline static bool nu_is_bool(nu_val *val) { return val->type == NU_BOOL_T; }
@@ -345,11 +342,13 @@ nu_val *nu_obj_get_val(nu_obj *obj, const nu_val *key);
 inline static bool nu_obj_add_val(nu_obj *obj, nu_val *key, nu_val *val) { return nu_obj_set_val(obj, key, val); }
 nu_val *nu_obj_del_val(nu_obj *obj, nu_val *key);
 
-size_t nu_obj_keys_c(nu_obj *obj, nu_val **keys);
-size_t nu_obj_vals_c(nu_obj *obj, nu_val **vals);
+nu_val **nu_obj_keys_c(nu_obj *obj);
+nu_val **nu_obj_vals_c(nu_obj *obj);
+nu_arr **nu_obj_pairs_c(nu_obj *obj);
 
 nu_arr *nu_obj_keys(nu_obj *obj);
 nu_arr *nu_obj_vals(nu_obj *obj);
+nu_arr *nu_obj_pairs(nu_obj *obj);
 
 bool nu_obj_has_key_c(nu_obj *obj, const nu_val *key);
 inline static nu_bool *nu_obj_has_key(const nu_obj *obj, const nu_val *key) { return nu_bool_new(nu_obj_has_key_c(obj, key)); }
@@ -370,7 +369,7 @@ void nu_obj_clear(nu_obj *obj);
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Misc Methods
-// numisc.c
+// nu.c
 // --------------------------------------------------------------------------------------------------------------------------------
 
 inline static nu_str *nu_repr(const nu_val *val) { return nu_str_new(nu_repr_c(val)); }

@@ -51,11 +51,12 @@ int main(int argc, char **argv)
     nu_free(arr);
 
     nu_obj *o = nu_obj_new();
-    nu_obj_add_val(o, nu_str_new("d"), nu_num_new(4));
     nu_obj_add_val(o, nu_str_new("a"), nu_num_new(1));
     nu_obj_add_val(o, nu_str_new("b"), nu_num_new(2));
-    nu_obj_add_val(o, nu_str_new("c"), nu_num_new(3));
-    printf("%s\n", nu_repr_c(o));
+    nu_obj_add_val(o, nu_str_new("c"), NU_NONE);
+    nu_obj_add_val(o, nu_str_new("d"), nu_num_new(4));
+    nu_arr *keys = nu_obj_vals(o);
+    printf("%s\n", nu_repr_c(keys));
     // printf("len: %lu\n", nu_to_size_t(nu_len(arr)));
     // printf("cap: %lu\n", nu_to_size_t(nu_cap(arr)));
     // if(nu_del_val_arr_c(arr, 53) != NU_NONE)

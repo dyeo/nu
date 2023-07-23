@@ -259,7 +259,6 @@ str_t _nu_arr_repr(const nu_arr *a)
     {
         strncpy(res + j, elems[i], sizes[i]);
         j += sizes[i];
-        free(elems[i]);
     }
     arrfree(elems);
     arrfree(sizes);
@@ -533,6 +532,11 @@ const nu_bool *nu_le(const nu_val *l, const nu_val *r)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
+const nu_bool *_nu_none_eq(const nu_val *l, const nu_val *r)
+{
+    return nu_literal_bool[(l == NU_NONE && r == NU_NONE) || (nu_is_none(l) && nu_is_none(r))];
+}
+
 const nu_bool *_nu_bool_eq(const nu_bool *l, const nu_bool *r)
 {
     return nu_literal_bool[l->data == r->data];
@@ -610,7 +614,7 @@ const nu_bool *_nu_thr_eq(const nu_thr *l, const nu_thr *r)
 }
 
 nu_cmpr_t _nu_eq_ptr[8] = {
-    (nu_cmpr_t)nu_none_oper,
+    (nu_cmpr_t)_nu_none_eq,
     (nu_cmpr_t)_nu_bool_eq,
     (nu_cmpr_t)_nu_num_eq,
     (nu_cmpr_t)_nu_str_eq,

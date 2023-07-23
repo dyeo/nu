@@ -4,6 +4,10 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
+const static nu_kvp nu_kvp_none = {0, NU_NONE, NU_NONE};
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
 nu_obj *nu_obj_new()
 {
     nu_obj *r = nu_malloc(nu_obj);
@@ -38,13 +42,16 @@ bool nu_obj_set_val(nu_obj *o, nu_val *key, nu_val *val)
     size_t hsh = nu_hash_c(key);
     nu_kvp res = hmgets(o->data, hsh);
     nu_decref(res.val);
+    res.hsh = hsh;
     if (res.key == NU_NONE)
     {
         nu_incref(key);
         res.key = key;
     }
-    res.hsh = hsh;
-    nu_incref(val);
+    if (!nu_eq(val, res.val))
+    {
+        nu_incref(val);
+    }
     res.val = val;
     hmputs(o->data, res);
     return true;
@@ -79,43 +86,39 @@ nu_val *nu_obj_del_val(nu_obj *o, const nu_val *key)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-size_t nu_obj_keys_c(nu_obj *o, nu_val **keys)
+nu_val **nu_obj_keys_c(nu_obj *o)
 {
-    int res = hmlen(o->data);
-    arrsetcap(keys, res);
-    for (int i = 0; i < res; ++i)
+    nu_val **res = NULL;
+    for (int i = 0; i < hmlen(o->data); ++i)
     {
-        o->data = arrpush(keys, o->data[i].key);
+        arrpush(res, o->data[i].key);
     }
     return res;
 }
 
-size_t nu_obj_vals_c(nu_obj *o, nu_val **vals)
+nu_val **nu_obj_vals_c(nu_obj *o)
 {
-    int res = hmlen(o->data);
-    arrsetcap(vals, res);
-    for (int i = 0; i < res; ++i)
+    nu_val **res = NULL;
+    for (int i = 0; i < hmlen(o->data); ++i)
     {
-        arrpush(vals, o->data[i].val);
+        arrpush(res, o->data[i].val);
     }
     return res;
 }
 
 nu_arr *nu_obj_keys(nu_obj *o)
 {
-    nu_val *keys = NULL;
-    size_t len = nu_obj_keys_c(o, &keys);
+    nu_val **keys = nu_obj_keys_c(o);
     nu_arr *res = nu_malloc(nu_arr);
-    NU_ARR_INIT(res, &keys);
+    NU_ARR_INIT(res, keys);
     return res;
 }
 
 nu_arr *nu_obj_vals(nu_obj *o)
 {
-    nu_val *vals = NULL;
-    size_t len = nu_obj_vals_c(o, &vals);
+    nu_val **vals = nu_obj_vals_c(o);
     nu_arr *res = nu_malloc(nu_arr);
-    NU_ARR_INIT(res, &vals);
+    NU_ARR_INIT(res, vals);
     return res;
 }
 
