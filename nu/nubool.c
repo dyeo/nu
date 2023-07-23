@@ -45,11 +45,11 @@ bool _nu_fn_bool_get(nu_fn *o)
 }
 bool _nu_arr_bool_get(nu_arr *o)
 {
-	return o->len > 0;
+	return arrlen(o->data) > 0;
 }
 bool _nu_obj_bool_get(nu_obj *o)
 {
-	return o->len > 0;
+	return hmlen(o->data) > 0;
 }
 bool _nu_thr_bool_get(nu_thr *o)
 {

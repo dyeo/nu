@@ -14,7 +14,7 @@
         "version": "0.2.0",
         "configurations": [
             {
-                "name": "GDB: Run Tests",
+                "name": "Run Tests",
                 "type": "cppvsdbg",
                 "request": "launch",
                 "program": "${workspaceFolder}/build/nu/tests/${input:buildConfig}/nutest.exe",
@@ -47,7 +47,14 @@
             "*.c": "c",
             "*.inl": "c",
             "*.py": "python",
-            "*.nu": "lua"
+            "*.nu": "lua",
+            "initializer_list": "c",
+            "list": "c",
+            "type_traits": "c",
+            "vector": "c",
+            "xhash": "c",
+            "xstring": "c",
+            "xutility": "c"
         },
         "files.exclude": {
             "**/.git": true,

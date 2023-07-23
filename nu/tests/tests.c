@@ -1,13 +1,7 @@
 ﻿#include "tests.h"
 #include "../nu.h"
-#include "../nurbt.h"
 
 #include <stdio.h>
-
-void rb_print(rb_node *curr)
-{
-    printf("%llu: %p\n", curr->key, curr->val);
-}
 
 int main(int argc, char **argv)
 {
@@ -30,33 +24,38 @@ int main(int argc, char **argv)
     // printf("%s : %llu\n", s->data, _hash_i);
     // nu_free(s);
 
-    printf(NU_SZE_FMT"\n", NU_REFS_MAX);
-
     size_t SIZE = 32;
     printf("max: %lu\n", SIZE);
     nu_arr *arr = nu_arr_new(SIZE);
     for (int i = 0; i < SIZE; ++i)
     {
-        nu_arr_push_val(arr, nu_num_new((num_t)i));
-        nu_str *v = nu_str_new("e");
-        nu_arr_push_val(arr, v);
-        if (i == SIZE / 2)
-        {
-            nu_arr *arr2 = nu_arr_new(SIZE / 2);
-            for (int i = 0; i < SIZE / 2; ++i)
-            {
-                nu_num *val2 = nu_num_new((num_t)i);
-                nu_arr_push_val(arr2, val2);
-                nu_arr_push_val(arr2, nu_str_new("e"));
-            }
-            nu_arr_push_val(arr, arr2);
-        }
+       nu_arr_push_val(arr, nu_num_new((num_t)i));
+       nu_str *v = nu_str_new("e");
+       nu_arr_push_val(arr, v);
+       if (i == SIZE / 2)
+       {
+           nu_arr *arr2 = nu_arr_new(SIZE / 2);
+           for (int i = 0; i < SIZE / 2; ++i)
+           {
+               nu_num *val2 = nu_num_new((num_t)i);
+               nu_arr_push_val(arr2, val2);
+               nu_arr_push_val(arr2, nu_str_new("e"));
+           }
+           nu_arr_push_val(arr, arr2);
+       }
     }
     printf("%s\n", nu_repr_c(arr));
     printf("\n");
     nu_arr_clear(arr);
     printf("%s\n", nu_repr_c(arr));
     nu_free(arr);
+
+    nu_obj *o = nu_obj_new();
+    nu_obj_add_val(o, nu_str_new("d"), nu_num_new(4));
+    nu_obj_add_val(o, nu_str_new("a"), nu_num_new(1));
+    nu_obj_add_val(o, nu_str_new("b"), nu_num_new(2));
+    nu_obj_add_val(o, nu_str_new("c"), nu_num_new(3));
+    printf("%s\n", nu_repr_c(o));
     // printf("len: %lu\n", nu_to_size_t(nu_len(arr)));
     // printf("cap: %lu\n", nu_to_size_t(nu_cap(arr)));
     // if(nu_del_val_arr_c(arr, 53) != NU_NONE)

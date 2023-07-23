@@ -9,7 +9,6 @@ extern "C" {
 
 #include "utils.h"
 #include "utf8.h"
-#include "nurbt.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -87,24 +86,27 @@ typedef struct nu_fn
 typedef struct nu_arr
 {
     NU_BASE_HEADER;
-    size_t len; // array length
-    size_t cap; // array capacity
-    nu_val **data;
+    nu_val **data; // array (stb)
 } nu_arr;
 
-#define NU_ARR_INIT(V, LEN, CAP, DATA) do { V->type = NU_ARR_T; V->refs = 0u; V->len = (LEN); V->cap = (CAP); V->data = (DATA); } while (0)
+#define NU_ARR_INIT(V, DATA) do { V->type = NU_ARR_T; V->data = (DATA); } while (0)
 
 // --------------------------------------------------------------------------------------------------------------------------------
+
+typedef struct nu_kvp
+{
+    size_t hsh; // hash key
+    nu_val *key; // actual key
+    nu_val *val; // val
+} nu_kvp;
 
 typedef struct nu_obj
 {
     NU_BASE_HEADER;
-    size_t len; // tree length
-    rb_tree *keys; // keys tree
-    rb_tree *vals; // vals tree
+    nu_kvp *data; // hashtable (stb)
 } nu_obj;
 
-#define NU_OBJ_INIT(V, LEN, KEYS, VALS) do { V->type = NU_OBJ_T; V->refs = 0u; V->len = (LEN); V->keys = (KEYS); V->vals = (VALS); } while (0)
+#define NU_OBJ_INIT(V, DATA) do { V->type = NU_OBJ_T; V->refs = 0u; V->data = (DATA); } while (0)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
@@ -135,6 +137,9 @@ static const nu_bool nu_false = {NU_BOOL_T, 0ul, false};
 static const nu_num nu_zero = {NU_NUM_T, 0ul, 0.0};
 static const nu_num nu_one = {NU_NUM_T, 0ul, 1.0};
 static const nu_str nu_empty = {NU_STR_T, 0ul, 0, 1, ""};
+
+const static nu_kvp nu_kvp_none = {0, &nu_none, &nu_none};
+#define nu_kvp_eq(a, b) (a.hsh == b.hsh && a.key == b.key && a.val == b.val)
 
 #define NU_NONE (&nu_none)
 #define NU_TRUE (&nu_true)
@@ -297,8 +302,8 @@ nu_str *nu_str_get_val(nu_str *str, nu_num *key);
 nu_arr *nu_arr_new(size_t cap);
 void nu_arr_free(nu_arr *arr);
 
-inline static nu_num *nu_arr_len(nu_arr *arr) { return nu_num_new((num_t)arr->len); }
-inline static nu_num *nu_arr_cap(nu_arr *arr) { return nu_num_new((num_t)arr->cap); }
+inline static nu_num *nu_arr_len(nu_arr *arr) { return nu_num_new((num_t)arrlen(arr->data)); }
+inline static nu_num *nu_arr_cap(nu_arr *arr) { return nu_num_new((num_t)arrcap(arr->data)); }
 
 bool nu_arr_set_val(nu_arr *arr, nu_num *idx, nu_val *val);
 nu_val *nu_arr_get_val(nu_arr *arr, nu_num *idx);
@@ -310,12 +315,12 @@ nu_val *nu_arr_get_val_c(nu_arr *arr, size_t i);
 bool nu_arr_add_val_c(nu_arr *arr, size_t i, nu_val *val);
 nu_val *nu_arr_del_val_c(nu_arr *arr, size_t i);
 
-inline static void nu_arr_push_val(nu_arr *arr, nu_val *val) { nu_arr_add_val_c(arr, arr->len, val); }
-inline static nu_val *nu_arr_pop_val(nu_arr *arr) { return nu_arr_del_val_c(arr, arr->len - 1); }
+inline static void nu_arr_push_val(nu_arr *arr, nu_val *val) { nu_arr_add_val_c(arr, arrlen(arr->data), val); }
+inline static nu_val *nu_arr_pop_val(nu_arr *arr) { return nu_arr_del_val_c(arr, arrlen(arr->data) - 1); }
 inline static void nu_arr_enq_val(nu_arr *arr, nu_val *val) { nu_arr_add_val_c(arr, 0, val); }
-inline static nu_val *nu_arr_deq_val(nu_arr *arr) { return nu_arr_del_val_c(arr, arr->len - 1); }
+inline static nu_val *nu_arr_deq_val(nu_arr *arr) { return nu_arr_del_val_c(arr, arrlen(arr->data) - 1); }
 
-inline static void nu_arr_clear(nu_arr *arr) { while (arr->len > 0) { nu_arr_pop_val(arr); } }
+inline static void nu_arr_clear(nu_arr *arr) { while (arrlen(arr->data) > 0) { nu_arr_pop_val(arr); } }
 
 bool nu_arr_has_val_c(const nu_arr *arr, const nu_val *val);
 inline static nu_bool *nu_arr_has_val(const nu_arr *arr, const nu_val *val) { return nu_bool_new(nu_arr_has_val_c(arr, val)); }
@@ -329,10 +334,10 @@ inline static nu_bool *nu_arr_has_val(const nu_arr *arr, const nu_val *val) { re
 nu_obj *nu_obj_new();
 void nu_obj_free(nu_obj *obj);
 
-inline static nu_num *nu_obj_len(nu_obj *obj) { return nu_num_new((num_t)obj->len); }
+inline static nu_num *nu_obj_len(nu_obj *obj) { return nu_num_new((num_t)hmlen(obj->data)); }
 inline static nu_num *nu_obj_cap(nu_obj *arr) { return nu_num_new((num_t)SIZE_MAX); }
 
-inline static size_t nu_obj_len_c(nu_obj *obj) { return obj->len; }
+inline static size_t nu_obj_len_c(nu_obj *obj) { return hmlen(obj->data); }
 inline static size_t nu_obj_cap_c(nu_obj *arr) { return SIZE_MAX; }
 
 bool nu_obj_set_val(nu_obj *obj, nu_val *key, nu_val *val);
@@ -340,16 +345,16 @@ nu_val *nu_obj_get_val(nu_obj *obj, const nu_val *key);
 inline static bool nu_obj_add_val(nu_obj *obj, nu_val *key, nu_val *val) { return nu_obj_set_val(obj, key, val); }
 nu_val *nu_obj_del_val(nu_obj *obj, nu_val *key);
 
-size_t nu_obj_keys_c(const nu_obj *obj, const nu_val **keys);
-size_t nu_obj_vals_c(const nu_obj *obj, const nu_val **vals);
+size_t nu_obj_keys_c(nu_obj *obj, nu_val **keys);
+size_t nu_obj_vals_c(nu_obj *obj, nu_val **vals);
 
-nu_arr *nu_obj_keys(const nu_obj *obj);
-nu_arr *nu_obj_vals(const nu_obj *obj);
+nu_arr *nu_obj_keys(nu_obj *obj);
+nu_arr *nu_obj_vals(nu_obj *obj);
 
-bool nu_obj_has_key_c(const nu_obj *obj, const nu_val *key);
+bool nu_obj_has_key_c(nu_obj *obj, const nu_val *key);
 inline static nu_bool *nu_obj_has_key(const nu_obj *obj, const nu_val *key) { return nu_bool_new(nu_obj_has_key_c(obj, key)); }
 
-bool nu_obj_has_val_c(const nu_obj *obj, const nu_val *val);
+bool nu_obj_has_val_c(nu_obj *obj, const nu_val *val);
 inline static nu_bool *nu_obj_has_val(const nu_obj *obj, const nu_val *val) { return nu_bool_new(nu_obj_has_val_c(obj, val)); }
 
 void nu_obj_clear(nu_obj *obj);

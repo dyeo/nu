@@ -2,33 +2,31 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-// --------------------------------------------------------------------------------------------------------------------------------
-
 nu_arr *nu_arr_new(size_t c)
 {
-    nu_arr *r = nu_malloc(nu_arr);
-    NU_ASSERT(r != NULL, "heap allocation error");
-    NU_ARR_INIT(r, 0, c == 0 ? 16 : c, nu_calloc(r->cap, nu_val *));
-    return r;
+    nu_arr *a = nu_malloc(nu_arr);
+    NU_ASSERT(a != NULL, "heap allocation error");
+    NU_ARR_INIT(a, NULL);
+    arrsetcap(a->data, c == 0 ? 16 : c);
+    return a;
 }
 
-void nu_arr_free(nu_arr *o)
+void nu_arr_free(nu_arr *a)
 {
-    o->type = NU_NONE_T;
-    o->len = o->cap = 0;
-    for (size_t i = 0; i < o->len; ++i)
+    a->type = NU_NONE_T;
+    for (size_t i = 0; i < arrlen(a->data); ++i)
     {
-        nu_decref(o->data[i]);
+        nu_decref(a->data[i]);
     }
-    free(o->data);
-    free(o);
+    arrfree(a->data);
+    free(a);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
 bool nu_arr_set_val_c(nu_arr *a, size_t i, nu_val *v)
 {
-    if (i < a->len)
+    if (i < arrlen(a->data))
     {
         nu_val *old = a->data[i];
         nu_decref(old);
@@ -47,37 +45,13 @@ bool nu_arr_set_val(nu_arr *a, nu_num *i, nu_val *v)
 
 bool nu_arr_add_val_c(nu_arr *a, size_t i, nu_val *v)
 {
-    if (i > a->len)
+    if (i > arrlen(a->data))
     {
         return false;
     }
+    
     nu_incref(v);
-    if (a->len == a->cap)
-    {
-        a->cap *= 2;
-        nu_val **tmp = nu_calloc(a->cap, nu_val *);
-        NU_ASSERT(tmp != NULL, "heap allocation error");
-        if (i > 0)
-        {
-            nu_copy(tmp, a->data, i, nu_val *);
-        }
-        tmp[i] = v;
-        if (i < a->len)
-        {
-            nu_copy(tmp + i + 1, a->data + i, a->len - i, nu_val *);
-        }
-        free(a->data);
-        a->data = tmp;
-    }
-    else
-    {
-        for (size_t j = i; j < a->len; ++j)
-        {
-            a->data[j + 1] = a->data[j];
-        }
-        a->data[i] = v;
-    }
-    a->len++;
+    arrins(a->data, i, v);
     return true;
 }
 
@@ -89,7 +63,7 @@ bool nu_arr_add_val(nu_arr *a, nu_num *i, nu_val *v)
 
 nu_val *nu_arr_get_val_c(nu_arr *a, size_t i)
 {
-    if (i < a->len)
+    if (i < arrlen(a->data))
     {
         return a->data[i];
     }
@@ -104,18 +78,15 @@ nu_val *nu_arr_get_val(nu_arr *a, nu_num *i)
 
 nu_val *nu_arr_del_val_c(nu_arr *a, size_t i)
 {
-    if (i < a->len)
+    if (i >= arrlen(a->data))
     {
-        nu_val *val = a->data[i];
-        nu_decref(val);
-        for (i; i < a->len - 1; ++i)
-        {
-            a->data[i] = a->data[i + 1];
-        }
-        a->len--;
-        return val;
+        return NU_NONE;
     }
-    return NU_NONE;
+    
+    nu_val *res = a->data[i];
+    arrdel(a->data, i);
+    nu_decref(res);
+    return res;
 }
 
 nu_val *nu_arr_del_val(nu_arr *arr, nu_num *idx)
@@ -126,11 +97,11 @@ nu_val *nu_arr_del_val(nu_arr *arr, nu_num *idx)
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-bool nu_arr_has_val_c(const nu_arr *arr, const nu_val *val)
+bool nu_arr_has_val_c(const nu_arr *a, const nu_val *val)
 {
-    for (size_t i = 0; i < arr->len; ++i)
+    for (size_t i = 0; i < arrlen(a->data); ++i)
     {
-        if (nu_eq(val, *(arr->data+i)))
+        if (nu_eq(val, *(a->data+i)))
         {
             return true;
         }

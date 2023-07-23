@@ -4,7 +4,12 @@
 #include <stdio.h>
 #include <float.h>
 
-#include "nurbt.h"
+// --------------------------------------------------------------------------------------------------------------------------------
+
+#ifndef STB_DS_IMPLEMENTATION
+#define STB_DS_IMPLEMENTATION
+#include "stb_ds.h"
+#endif
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
@@ -133,7 +138,7 @@ size_t _nu_arr_hash(const nu_arr *o)
 {
     size_t h = _FNV_OFFSET_N;
     size_t i;
-    for (i = 0; i < o->len; ++i)
+    for (i = 0; i < arrlen(o->data); ++i)
     {
         h = (h ^ nu_size_t_get_c(nu_hash(o->data[i]))) * _FNV_PRIME_N;
     }
@@ -143,12 +148,10 @@ size_t _nu_arr_hash(const nu_arr *o)
 size_t _nu_obj_hash(const nu_obj *obj)
 {
     size_t h = _FNV_OFFSET_N;
-    rb_node *knode = rb_min(obj->keys->root);
-    rb_node *vnode = rb_min(obj->vals->root);
-    while (knode != RB_NIL && vnode != RB_NIL)
+    for (int i = 0; i < hmlen(obj->data); ++i)
     {
-        h = (h ^ nu_size_t_get_c(nu_hash((nu_val *)knode->val))) * _FNV_PRIME_N;
-        h = (h ^ nu_size_t_get_c(nu_hash((nu_val *)vnode->val))) * _FNV_PRIME_N;
+        h = (h ^ obj->data[i].hsh) * _FNV_PRIME_N;
+        h = (h ^ nu_hash_c((nu_val *)obj->data[i].val)) * _FNV_PRIME_N;
     }
     return h;
 }
@@ -226,97 +229,86 @@ str_t _nu_fn_repr(const nu_fn *o)
     return "nu_fn";
 }
 
-str_t _nu_arr_repr(const nu_arr *o)
+str_t _nu_arr_repr(const nu_arr *a)
 {
-    char **elems = nu_calloc(o->len, char *);
-    size_t *sizes = nu_calloc(o->len, size_t);
-    size_t i = 0, total_size = 0;
-    total_size += 4; // account for "[ " and " ]"
-    for (i; i < o->len; ++i)
+    size_t len = arrlen(a->data);
+    char **elems = NULL;
+    size_t *sizes = NULL;
+    size_t cap = 0;
+    arrpush(elems, strdup("[ "));
+    arrpush(sizes, 2); cap += 2;
+    for (int i = 0; i < len; ++i)
     {
-        elems[i] = nu_repr_c(o->data[i]);
-        sizes[i] = strlen(elems[i]);
-        total_size += sizes[i];
-        if (i < o->len - 1)
+        char *repr = nu_repr_c(a->data[i]);
+        size_t size = strlen(repr);
+        arrpush(elems, repr);
+        arrpush(sizes, size); cap += size;
+        if (i < len - 1)
         {
-            total_size += 2; // account for ", "
+            arrpush(elems, strdup(", "));
+            arrpush(sizes, 2); cap += 2;
         }
     }
-    total_size++;
-
-    char *result = nu_calloc(total_size, char);
-    i = 0;
+    arrpush(elems, strdup(" ]"));
+    arrpush(sizes, 2); cap += 2;
+    cap++; // '\0'
+    len = arrlen(elems);
+    char *res = nu_calloc(cap, char);
     size_t j = 0;
-    strncpy(result + j, "[ ", 2);
-    j += 2;
-    for (i; i < o->len; ++i)
+    for (int i = 0; i < len; ++i)
     {
-        char *elem = elems[i];
-        size_t size = sizes[i];
-        strncpy(result + j, elem, size);
-        j += size;
-        if (i < o->len - 1)
-        {
-            strncpy(result + j, ", ", 2);
-            j += 2;
-        }
+        strncpy(res + j, elems[i], sizes[i]);
+        j += sizes[i];
+        free(elems[i]);
     }
-    strncpy(result + j, " ]", 2);
-    j += 2;
-    result[j] = '\0';
-    return result;
+    arrfree(elems);
+    arrfree(sizes);
+    res[cap - 1] = '\0';
+    return res;
 }
 
 str_t _nu_obj_repr(const nu_obj *o)
 {
-    char **elems = nu_calloc(o->len * 2, char *);
-    size_t *sizes = nu_calloc(o->len * 2, size_t);
-    size_t i = 0, total_size = 0;
-    total_size += 4; // account for "{ " and " }"
-    rb_node *curk = rb_min(o->keys->root);
-    rb_node *curv = rb_min(o->vals->root);
-    while (curk != RB_NIL && curv != RB_NIL)
+    size_t len = hmlen(o->data);
+    char **elems = NULL;
+    size_t *sizes = NULL;
+    size_t cap = 0;
+    arrpush(elems, strdup("{ "));
+    arrpush(sizes, 2); cap += 2;
+    for (int i = 0; i < len; ++i)
     {
-        elems[i] = nu_repr_c((nu_val *)curk->val);
-        sizes[i] = strlen(elems[i]);
-        elems[i + 1] = nu_repr_c((nu_val *)curv->val);
-        sizes[i + 1] = strlen(elems[i + 1]);
-        total_size += sizes[i] + sizes[i + 1];
-        total_size += 2; // account for ": "
-        if (i < o->len - 1)
+        char *krepr = nu_repr_c(o->data[i].key);
+        size_t ksize = strlen(krepr);
+        arrpush(elems, krepr);
+        arrpush(sizes, ksize); cap += ksize;
+        arrpush(elems, strdup(": "));
+        arrpush(sizes, 2); cap += 2;
+        char *vrepr = nu_repr_c(o->data[i].val);
+        size_t vsize = strlen(vrepr);
+        arrpush(elems, vrepr);
+        arrpush(sizes, vsize); cap += vsize;
+        if (i < len - 1)
         {
-            total_size += 2; // account for ", "
+            arrpush(elems, strdup(", "));
+            arrpush(sizes, 2); cap += 2;
         }
     }
-    total_size++;
-
-    char *result = nu_calloc(total_size, char);
-    i = 0;
+    arrpush(elems, strdup(" }"));
+    arrpush(sizes, 2); cap += 2;
+    cap++; // '\0'
+    len = arrlen(elems);
+    char *res = nu_calloc(cap, char);
     size_t j = 0;
-    strncpy(result + j, "{ ", 2);
-    j += 2;
-    for (i; i < o->len; i += 2)
+    for (int i = 0; i < len; ++i)
     {
-        char *key = elems[i];
-        char *val = elems[i + 1];
-        size_t szek = sizes[i];
-        size_t szev = sizes[i + 1];
-        strncpy(result + j, key, szek);
-        j += szek;
-        strncpy(result + j, ": ", 2);
-        j += 2;
-        strncpy(result + j, key, szev);
-        j += szev;
-        if (i < o->len - 1)
-        {
-            strncpy(result + j, ", ", 2);
-            j += 2;
-        }
+        strncpy(res + j, elems[i], sizes[i]);
+        j += sizes[i];
+        free(elems[i]);
     }
-    strncpy(result + j, " }", 2);
-    j += 2;
-    result[j] = '\0';
-    return result;
+    arrfree(elems);
+    arrfree(sizes);
+    res[cap - 1] = '\0';
+    return res;
 }
 
 str_t _nu_thr_repr(const nu_thr *o)
@@ -459,12 +451,12 @@ const nu_bool *_nu_fn_lt(const nu_fn *l, const nu_fn *r)
 
 const nu_bool *_nu_arr_lt(const nu_arr *l, const nu_arr *r)
 {
-    return nu_literal_bool[l->len < r->len];
+    return nu_literal_bool[arrlen(l->data) < arrlen(r->data)];
 }
 
 const nu_bool *_nu_obj_lt(const nu_obj *l, const nu_obj *r)
 {
-    return nu_literal_bool[l->len < r->len];
+    return nu_literal_bool[hmlen(l->data) < hmlen(r->data)];
 }
 
 const nu_bool *_nu_thr_lt(const nu_val *l, const nu_val *r)
@@ -575,12 +567,12 @@ const nu_bool *_nu_fn_eq(const nu_fn *l, const nu_fn *r)
 
 const nu_bool *_nu_arr_eq(const nu_arr *l, const nu_arr *r)
 {
-    if (l->type != r->type || l->len != r->len)
+    if (l->type != r->type || arrlen(l->data) != arrlen(r->data))
     {
         return NU_FALSE;
     }
     size_t i = 0;
-    for (i; i < l->len; ++i)
+    for (i; i < arrlen(l->data); ++i)
     {
         if (!nu_eq(l->data[i], r->data[i]))
         {
@@ -592,14 +584,22 @@ const nu_bool *_nu_arr_eq(const nu_arr *l, const nu_arr *r)
 
 const nu_bool *_nu_obj_eq(const nu_obj *l, const nu_obj *r)
 {
-    if (l->type != r->type || l->len != r->len)
+    if (l->type != r->type || arrlen(l->data) != arrlen(r->data))
     {
         return NU_FALSE;
     }
-    size_t i = 0;
-    for (i; i < l->len; ++i)
+    for (int i = 0; i < arrlen(l->data); ++i)
     {
-        // TODO: implement
+        nu_kvp lp = l->data[i];
+        nu_kvp rp = r->data[i];
+        if (lp.hsh != rp.hsh)
+        {
+            return NU_FALSE;
+        }
+        if (!nu_eq(lp.key, rp.key) || !nu_eq(lp.val, rp.val))
+        {
+            return NU_FALSE;
+        }
     }
     return NU_TRUE;
 }
@@ -752,12 +752,12 @@ const nu_val *_nu_fn_gt(const nu_fn *l, const nu_fn *r)
 
 const nu_bool *_nu_arr_gt(const nu_arr *l, const nu_arr *r)
 {
-    return nu_literal_bool[l->len > r->len];
+    return nu_literal_bool[arrlen(l->data) > arrlen(r->data)];
 }
 
 const nu_bool *_nu_obj_gt(const nu_obj *l, const nu_obj *r)
 {
-    return nu_literal_bool[l->len > r->len];
+    return nu_literal_bool[hmlen(l->data) > hmlen(r->data)];
 }
 
 const nu_val *_nu_thr_gt(const nu_val *l, const nu_val *r)
@@ -822,12 +822,12 @@ nu_str *_nu_str_add(nu_str *l, nu_str *r)
 
 nu_arr *_nu_arr_add(nu_arr *l, nu_arr *r)
 {
-    nu_arr *res = nu_arr_new(l->cap + r->cap);
-    for (int i = 0; i < l->len; ++i)
+    nu_arr *res = nu_arr_new(arrcap(l->data) + arrcap(r->data));
+    for (int i = 0; i < arrlen(l->data); ++i)
     {
         nu_arr_push_val(res, nu_arr_get_val_c(l, i));
     }
-    for (int i = 0; i < r->len; ++i)
+    for (int i = 0; i < arrlen(r->data); ++i)
     {
         nu_arr_push_val(res, nu_arr_get_val_c(r, i));
     }
@@ -837,21 +837,13 @@ nu_arr *_nu_arr_add(nu_arr *l, nu_arr *r)
 nu_obj *_nu_obj_add(const nu_obj *l, const nu_obj *r)
 {
     nu_obj *res = nu_obj_new();
-    rb_node *knode = rb_min(l->keys->root);
-    rb_node *vnode = rb_min(l->vals->root);
-    while (knode != RB_NIL)
+    for (int i = 0; i < hmlen(l->data); ++i)
     {
-        nu_obj_add_val(res, knode->val, vnode->val);
-        knode = rb_next(knode);
-        vnode = rb_next(vnode);
+        nu_obj_set_val(res, l->data[i].key, l->data[i].val);
     }
-    knode = rb_min(r->keys->root);
-    vnode = rb_min(r->vals->root);
-    while (knode != RB_NIL)
+    for (int i = 0; i < hmlen(r->data); ++i)
     {
-        nu_obj_add_val(res, knode->val, vnode->val);
-        knode = rb_next(knode);
-        vnode = rb_next(vnode);
+        nu_obj_set_val(res, r->data[i].key, r->data[i].val);
     }
     return res;
 }
