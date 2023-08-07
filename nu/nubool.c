@@ -37,7 +37,7 @@ bool _nu_num_bool_get(nu_num *o)
 }
 bool _nu_str_bool_get(nu_str *o)
 {
-	return o->len > 0;
+	return lstrlen(o->data) > 0;
 }
 bool _nu_fn_bool_get(nu_fn *o)
 {

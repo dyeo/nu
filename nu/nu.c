@@ -126,7 +126,7 @@ size_t _nu_num_hash(const nu_num *o)
 
 size_t _nu_str_hash(const nu_str *o)
 {
-    return hashN(o->data, o->cap);
+    return hashN(o->data, arrlen(o->data));
 }
 
 size_t _nu_fn_hash(const nu_fn *o)
@@ -218,9 +218,10 @@ str_t _nu_num_repr(const nu_num *o)
 
 str_t _nu_str_repr(const nu_str *o)
 {
-    char *buf = nu_calloc(o->cap + 3, char);
-    snprintf(buf, o->cap + 3, "\"%s\"", o->data);
-    buf[o->cap + 2] = '\0';
+    size_t len = lstrlen(o->data);
+    char *buf = nu_calloc(len + 3, char);
+    snprintf(buf, len + 3, "\"%s\"", o->data);
+    buf[len + 2] = '\0';
     return buf;
 }
 
@@ -549,12 +550,12 @@ const nu_bool *_nu_num_eq(const nu_num *l, const nu_num *r)
 
 const nu_bool *_nu_str_eq(const nu_str *l, const nu_str *r)
 {
-    if (l->type != r->type || l->len != r->len)
+    if (l->type != r->type || lstrlen(l->data) != lstrlen(r->data))
     {
         return NU_FALSE;
     }
     size_t i = 0;
-    for (i; i < l->len; ++i)
+    for (i; i < lstrlen(l->data); ++i)
     {
         if (l->data[i] != r->data[i])
         {
@@ -746,7 +747,7 @@ const nu_bool *_nu_num_gt(const nu_num *l, const nu_num *r)
 
 const nu_bool *_nu_str_gt(const nu_str *l, const nu_str *r)
 {
-    return nu_literal_bool[l->len > r->len];
+    return nu_literal_bool[lstrlen(l->data) > lstrlen(r->data)];
 }
 
 const nu_val *_nu_fn_gt(const nu_fn *l, const nu_fn *r)
@@ -818,10 +819,9 @@ nu_fn *_nu_fn_add(nu_fn *l, nu_fn *r)
 
 nu_str *_nu_str_add(nu_str *l, nu_str *r)
 {
-    char *res = nu_calloc(l->cap + r->cap - 1, char);
-    strncpy_s(res, l->cap - 1, l->data, l->cap - 1);
-    strncpy_s(res + l->cap - 1, r->cap - 1, r->data, r->cap - 1);
-    return nu_str_new(res);
+    nu_str *res = nu_malloc(nu_str);
+    NU_STR_INIT(res, lstrcat(l->data, r->data));
+    return res;
 }
 
 nu_arr *_nu_arr_add(nu_arr *l, nu_arr *r)
@@ -988,6 +988,120 @@ nu_oper_t _nu_mod_ptr[8] = {
 nu_val *nu_mod(nu_val *l, nu_val *r)
 {
     return _nu_mod_ptr[l->type](l, r);
+}
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+// row is src type
+// col is dst type
+const static uint8_t _coerce_matrix[] = 
+{
+    0b01010000, // none
+    0b00110000, // bool
+    0b01010000, // num
+    0b01010100, // str
+    0b01010000, // fn
+    0b01010000, // arr
+    0b01010000, // obj
+    0b01010000  // thr
+};
+
+nu_val *nu_coerce_c(nu_val *val, uint8_t type)
+{
+    if (val->type == type)
+    {
+        return val;
+    }
+    uint8_t dst = 1 >> type;
+    if (_coerce_matrix[val->type] & dst == 0)
+    {
+        return NU_NONE;
+    }
+    switch (val->type)
+    {
+    case NU_NONE_T:
+        switch (type)
+        {
+        case NU_BOOL_T:
+            return nu_bool_new(false);
+        case NU_STR_T:
+            return nu_str_new("none");
+        }
+    case NU_BOOL_T:
+        switch (type)
+        {
+        case NU_NUM_T:
+            return nu_bool_new(false);
+        case NU_STR_T:
+            return nu_str_new(((nu_bool*)val)->data ? "true" : "false");
+        }
+    case NU_NUM_T:
+        switch (type)
+        {
+        case NU_BOOL_T:
+            return nu_bool_new(((nu_num*)val)->data != 0);
+        case NU_STR_T:
+            return _nu_num_repr((nu_num*)val);
+        }
+    case NU_STR_T:
+        switch (type)
+        {
+        case NU_BOOL_T:
+            return ((nu_str*)val)->data;
+        case NU_ARR_T:
+            return NU_NONE;
+        }
+    case NU_FN_T:
+        switch (type)
+        {
+        case NU_BOOL_T:
+        case NU_NUM_T:
+        case NU_STR_T:
+        case NU_ARR_T:
+        case NU_OBJ_T:
+        case NU_THR_T:
+        default:
+            return NU_NONE;
+        }
+    case NU_ARR_T:
+        switch (type)
+        {
+        case NU_BOOL_T:
+        case NU_NUM_T:
+        case NU_STR_T:
+        case NU_FN_T:
+        case NU_OBJ_T:
+        case NU_THR_T:
+        default:
+            return NU_NONE;
+        }
+    case NU_OBJ_T:
+        switch (type)
+        {
+        case NU_BOOL_T:
+        case NU_NUM_T:
+        case NU_STR_T:
+        case NU_FN_T:
+        case NU_ARR_T:
+        case NU_THR_T:
+        default:
+            return NU_NONE;
+        }
+    case NU_THR_T:
+        switch (type)
+        {
+        case NU_BOOL_T:
+        case NU_NUM_T:
+        case NU_STR_T:
+        case NU_FN_T:
+        case NU_ARR_T:
+        case NU_OBJ_T:
+        default:
+            return NU_NONE;
+        }
+    default:
+        return NU_NONE;
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------

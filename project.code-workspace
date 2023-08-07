@@ -5,71 +5,48 @@
             "path": "."
         }
     ],
-    "tasks": {
-        "version": "2.0.0",
-        "tasks": [
-        ]
-    },
     "launch": {
-        "version": "0.2.0",
+        "version": "2.0.0",
         "configurations": [
             {
-                "name": "Run Tests",
-                "type": "cppvsdbg",
+                "name": "Debug",
+                "type": "cppdbg",
                 "request": "launch",
-                "program": "${workspaceFolder}/build/nu/tests/${input:buildConfig}/nutest.exe",
-                "args": [],
-                "stopAtEntry": false,
+                "program": "${workspaceFolder}/build/nu/test/Debug/test.exe",
                 "cwd": "${workspaceFolder}",
                 "environment": [],
+                "stopAtEntry": false,
                 "externalConsole": true
-            }
-        ],
-        "compounds": [],
-        "inputs": [
-            {
-                "id": "buildConfig",
-                "type": "pickString",
-                "description": "Select build configuration",
-                "options": [
-                    "Debug",
-                    "Release",
-                    "MinSizeRel",
-                    "RelWithDebInfo"
-                ],
-                "default": "Debug"
             }
         ]
     },
     "settings": {
+        "debug.console.closeOnEnd": false,
         "files.associations": {
             "*.h": "c",
             "*.c": "c",
             "*.inl": "c",
             "*.py": "python",
             "*.nu": "lua",
-            "initializer_list": "c",
-            "list": "c",
-            "type_traits": "c",
-            "vector": "c",
-            "xhash": "c",
-            "xstring": "c",
-            "xutility": "c"
         },
         "files.exclude": {
-            "**/.git": true,
-            "**/.svn": true,
-            "**/.hg": true,
-            "**/CVS": true,
-            "**/.DS_Store": true,
-            "**/Thumbs.db": true,
-            "**/*.sln": true,
-            "**/*.vcxproj": true,
-            "**/*.vcxproj.filters": true,
-            "**/*.cmake": true,
-            "**/CMakeCache.txt": true,
-            "**/CMakeFiles": true,
+            ".git": true,
+            ".svn": true,
+            ".hg": true,
+            "CVS": true,
+            ".DS_Store": true,
+            "Thumbs.db": true,
+            "*.sln": true,
+            "*.vcxproj": true,
+            "*.vcxproj.*": true,
+            "*.cmake": true,
+            "CMakeCache.txt": true,
+            "CMakeFiles": true,
             "build": true
-        }
+        },
+        "C_Cpp.default.includePath": [
+            "${workspaceFolder}/include",
+            "${workspaceFolder}"
+        ]
     }
 }

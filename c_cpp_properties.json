@@ -3,6 +3,7 @@
         {
             "name": "Debug",
             "includePath": [
+                "${workspaceFolder}",
                 "${workspaceFolder}/include"
             ],
             "defines": [
@@ -18,6 +19,7 @@
         {
             "name": "Release",
             "includePath": [
+                "${workspaceFolder}",
                 "${workspaceFolder}/include"
             ],
             "defines": [
